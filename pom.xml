@@ -1,18 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.ooze</groupId>
-    <artifactId>loader</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.compiler.source>1.8</maven.compiler.source>
-    </properties>
-    
+      <groupId>com.github.ooze</groupId>
+      <artifactId>loader</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+
+      <properties>
+            <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+            <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+            <maven.compiler.target>1.8</maven.compiler.target>
+            <maven.compiler.source>1.8</maven.compiler.source>
+      </properties>
+
+      <dependencies>
+            <dependency>
+                  <groupId>com.google.protobuf</groupId>
+                  <artifactId>protobuf-java</artifactId>
+                  <version>3.17.3</version>
+            </dependency>
+      </dependencies>
+
+      <build>
+            <plugins>
+                  <plugin>
+                        <groupId>com.github.os72</groupId>
+                        <artifactId>protoc-jar-maven-plugin</artifactId>
+                        <version>3.11.4</version>
+                        <executions>
+                              <execution>
+                                    <phase>generate-sources</phase>
+                                    <goals>
+                                          <goal>run</goal>
+                                    </goals>
+                                    <configuration>
+                                          <protocVersion>3.17.3</protocVersion>
+                                          <optimizeCodegen>false</optimizeCodegen>
+                                          <addProtoSources>true</addProtoSources>
+                                          <cleanOutputFolder>true</cleanOutputFolder>
+                                    </configuration>
+                              </execution>
+                        </executions>
+                  </plugin>
+            </plugins>
+      </build>
 </project>
