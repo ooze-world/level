@@ -5,7 +5,7 @@ package me.nullicorn.ooze.storage;
  *
  * @author Nullicorn
  */
-public final class BitUtils {
+final class BitUtils {
 
   /**
    * @return the minimum number of bits needed to represent the {@code value}.
