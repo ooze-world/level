@@ -34,8 +34,6 @@ public class Palette implements Iterable<BlockState> {
     return new Palette(proto.getName(), proto.getDataVersion(), states);
   }
 
-  // TODO: 7/28/21 Finish javadocs.
-
   private final String           name;
   private final int              dataVersion;
   private final List<BlockState> states;

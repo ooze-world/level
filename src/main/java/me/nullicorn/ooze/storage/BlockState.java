@@ -12,8 +12,6 @@ import me.nullicorn.ooze.nbt.NbtUtils;
  */
 public class BlockState {
 
-  // TODO: 7/29/21 Make properties immutable.
-
   /**
    * A factory for converting block states from their ProtoBuf form.
    *
