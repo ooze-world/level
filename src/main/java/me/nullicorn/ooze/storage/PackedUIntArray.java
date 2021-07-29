@@ -216,8 +216,8 @@ public class PackedUIntArray {
   }
 
   /**
-   * @return a Protocol Buffer with the same {@link #size() size}, {@link #magnitude() magnitude}, and
-   * contents as the array. The buffer can be passed to {@link #PackedUIntArray(PackedUIntArrayData)
+   * @return a Protocol Buffer with the same {@link #size() size}, {@link #magnitude() magnitude},
+   * and contents as the array. The buffer can be passed to {@link #PackedUIntArray(PackedUIntArrayData)
    * this constructor} to create an identical array.
    */
   public PackedUIntArrayData toProto() {
