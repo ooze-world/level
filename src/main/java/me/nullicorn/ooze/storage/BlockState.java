@@ -45,7 +45,7 @@ public class BlockState {
     }
 
     this.name = name;
-    this.properties = properties;
+    this.properties = NbtUtils.copyToImmutable(properties);
   }
 
   /**
@@ -58,7 +58,8 @@ public class BlockState {
 
   /**
    * @return additional information defining the state of the block. Includes things like
-   * orientation, power, growth stage, etc.
+   * orientation, power, growth stage, etc. The returned compound is immutable, so attempting to
+   * modify it will result in an {@link UnsupportedOperationException}.
    */
   public NBTCompound getProperties() {
     return properties;

@@ -3,16 +3,26 @@ package me.nullicorn.ooze.nbt;
 import com.google.protobuf.ByteString;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import me.nullicorn.nedit.NBTInputStream;
 import me.nullicorn.nedit.NBTOutputStream;
 import me.nullicorn.nedit.type.NBTCompound;
+import me.nullicorn.nedit.type.NBTList;
 
 /**
- * Helper methods for encoding and decoding NBT data.
+ * Helper methods for processing NBT data.
  *
  * @author Nullicorn
  */
 public final class NbtUtils {
+
+  /**
+   * Copies the contents of a {@code compound} into a new compound that cannot be modified,
+   * disregarding reflection or similar methods.
+   */
+  public static NBTCompound copyToImmutable(NBTCompound compound) {
+    return new ImmutableCompound(compound);
+  }
 
   /**
    * Serializes the contents of an NBT compound.
@@ -45,7 +55,7 @@ public final class NbtUtils {
    * @return the compound represented by the bytes.
    * @throws IOException if the byte string was not an NBT-encoded compound.
    */
-  public static NBTCompound fromByteString(ByteString proto) throws IOException {
+  public static NBTCompound decodeFromBytes(ByteString proto) throws IOException {
     if (proto == null) {
       throw new IllegalArgumentException("null proto cannot be converted to compound");
     } else if (proto.isEmpty()) {
@@ -59,20 +69,29 @@ public final class NbtUtils {
     }
   }
 
-  public static NBTCompound deepCopy(NBTCompound compound) {
-    return deepCopy(compound);
-  }
+  /**
+   * Recursively copies the contents of an NBT tag. Used internally to copy tags into {@link
+   * ImmutableCompound immutable compounds}.
+   *
+   * @param nbt The tag to copy.
+   * @param <T> The runtime class of the NBT type.
+   */
+  // Suppressed so we can copy differently based on class, including arrays with an unknown type.
+  @SuppressWarnings({"SuspiciousSystemArraycopy", "unchecked"})
+  static <T> T deepCopy(T nbt) {
+    if (nbt == null) {
+      throw new IllegalArgumentException("null tag cannot be copied");
+    }
 
-  @SuppressWarnings("SuspiciousSystemArraycopy")
-  private static Object deepCopyValue(Object nbt) {
     Object copy;
+
     if (nbt instanceof NBTCompound) {
       NBTCompound compound = (NBTCompound) nbt;
       NBTCompound compoundCopy = new NBTCompound();
 
       // Perform a deep copy on each value, then add
       // them to the new compound using the same name.
-      compound.forEach((name, value) -> compoundCopy.put(name, deepCopyValue(value)));
+      compound.forEach((name, value) -> compoundCopy.put(name, deepCopy(value)));
       copy = compoundCopy;
 
     } else if (nbt instanceof NBTList) {
@@ -81,7 +100,7 @@ public final class NbtUtils {
 
       // Perform a deep copy on each element, then
       // add them to the new list at the same index.
-      list.forEach(element -> listCopy.add(deepCopyValue(element)));
+      list.forEach(element -> listCopy.add(deepCopy(element)));
       copy = listCopy;
 
     } else if (nbt instanceof byte[] || nbt instanceof int[] || nbt instanceof long[]) {
@@ -102,7 +121,7 @@ public final class NbtUtils {
       throw new IllegalArgumentException("Unable to copy NBT value: " + nbt);
     }
 
-    return copy;
+    return (T) copy;
   }
 
   private NbtUtils() {

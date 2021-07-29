@@ -26,7 +26,7 @@ class PackedUIntArrayTests {
         .setContents(ByteString.EMPTY)
         .build();
 
-    assertThrows(expectedException, () -> new PackedUIntArray(invalidData));
+    assertThrows(expectedException, () -> PackedUIntArray.fromProto(invalidData));
     assertThrows(expectedException, () -> new PackedUIntArray(negativeSize, 5));
   }
 
@@ -41,7 +41,7 @@ class PackedUIntArrayTests {
         .setContents(ByteString.EMPTY)
         .build();
 
-    assertThrows(expectedException, () -> new PackedUIntArray(invalidData));
+    assertThrows(expectedException, () -> PackedUIntArray.fromProto(invalidData));
     assertThrows(expectedException, () -> new PackedUIntArray(5, invalidMagnitude));
   }
 
