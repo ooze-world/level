@@ -1,4 +1,4 @@
-package me.nullicorn.ooze.loader.storage;
+package me.nullicorn.ooze.storage;
 
 /**
  * Helper methods for various binary operations.

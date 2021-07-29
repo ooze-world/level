@@ -1,4 +1,4 @@
-package me.nullicorn.ooze.loader.storage;
+package me.nullicorn.ooze.storage;
 
 import com.github.ooze.protos.PackedUIntArrayData;
 import com.google.protobuf.ByteString;
