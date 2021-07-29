@@ -16,9 +16,13 @@ public class PackedUIntArray {
   /**
    * A factory for converting packed uint arrays from their ProtoBuf form.
    */
-  public static PackedUIntArray fromProto(PackedUIntArrayData data) {
-    byte[] contents = data.getContents().toByteArray();
-    PackedUIntArray array = new PackedUIntArray(data.getSize(), data.getMagnitude(), contents);
+  public static PackedUIntArray fromProto(PackedUIntArrayData proto) {
+    if (proto == null) {
+      throw new IllegalArgumentException("null proto cannot be converted to a uint array");
+    }
+
+    byte[] contents = proto.getContents().toByteArray();
+    PackedUIntArray array = new PackedUIntArray(proto.getSize(), proto.getMagnitude(), contents);
 
     // Just to be safe, clear any extraneous trailing
     // bits on the last byte. If set, they would mess

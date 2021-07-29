@@ -11,7 +11,7 @@ import me.nullicorn.ooze.nbt.NbtUtils;
  *
  * @author Nullicorn
  */
-public class BlockState {
+public final class BlockState {
 
   /**
    * A factory for converting block states from their ProtoBuf form.
@@ -19,6 +19,9 @@ public class BlockState {
    * @throws IOException if the state's properties could not be NBT-decoded.
    */
   public static BlockState fromProto(BlockStateData proto) throws IOException {
+    if (proto == null) {
+      throw new IllegalArgumentException("null proto cannot be converted to a block state");
+    }
     return new BlockState(proto.getName(), NbtUtils.decodeFromBytes(proto.getProperties()));
   }
 

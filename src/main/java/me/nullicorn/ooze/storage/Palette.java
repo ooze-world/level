@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A zero-indexed list of {@link BlockState block states}. Allows data using the palette to refer to
@@ -15,7 +16,7 @@ import java.util.List;
  *
  * @author Nullicorn
  */
-public class Palette implements Iterable<BlockState> {
+public final class Palette implements Iterable<BlockState> {
 
   /**
    * A factory for converting palettes from their ProtoBuf form.
@@ -23,6 +24,10 @@ public class Palette implements Iterable<BlockState> {
    * @throws IOException if the properties of any of the palette's states could not be NBT-decoded.
    */
   public static Palette fromProto(PaletteData proto) throws IOException {
+    if (proto == null) {
+      throw new IllegalArgumentException("null proto cannot be converted to a palette");
+    }
+
     List<BlockState> states = new ArrayList<>();
 
     // Wrap each state's proto in a BlockState object.
@@ -46,6 +51,19 @@ public class Palette implements Iterable<BlockState> {
    *                    list.
    */
   public Palette(String name, int dataVersion, List<BlockState> states) {
+    if (name == null) {
+      throw new IllegalArgumentException("name cannot be null");
+    } else if (states == null) {
+      throw new IllegalArgumentException("state list cannot be null");
+    }
+
+    // Make sure this list doesn't contain any null states.
+    for (int i = 0; i < states.size(); i++){
+      if (states.get(i) == null){
+        throw new IllegalArgumentException("state cannot be null (i=" + i + ")");
+      }
+    }
+
     this.name = name;
     this.dataVersion = dataVersion;
 
@@ -73,6 +91,13 @@ public class Palette implements Iterable<BlockState> {
    */
   public int size() {
     return states.size();
+  }
+
+  /**
+   * @return whether the palette has any states in it. {@code true} only when {@code size() == 0}.
+   */
+  public boolean isEmpty() {
+    return states.isEmpty();
   }
 
   /**
@@ -119,5 +144,39 @@ public class Palette implements Iterable<BlockState> {
         return mutableIter.next();
       }
     };
+  }
+
+  @Override
+  // Format: "name[state1, state2, state3, ...]"
+  public String toString() {
+    if (states.isEmpty()) {
+      return name + "[]";
+    }
+
+    StringBuilder sb = new StringBuilder(name).append('[');
+    forEach(state -> sb.append(state).append(", "));
+
+    // Replace the trailing comma with a closing bracket.
+    sb.replace(sb.length() - 2, sb.length() - 1, "]");
+    return sb.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Palette that = (Palette) o;
+    return dataVersion == that.dataVersion &&
+           name.equals(that.name) &&
+           states.equals(that.states);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, dataVersion, states);
   }
 }
