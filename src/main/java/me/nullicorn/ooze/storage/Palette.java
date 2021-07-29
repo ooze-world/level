@@ -1,29 +1,58 @@
 package me.nullicorn.ooze.storage;
 
+import com.github.ooze.protos.BlockStateData;
 import com.github.ooze.protos.PaletteData;
 import com.github.ooze.protos.PaletteData.Builder;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 /**
+ * A zero-indexed list of {@link BlockState block states}. Allows data using the palette to refer to
+ * smaller integers rather than entire states repeatedly.
+ *
  * @author Nullicorn
  */
 public class Palette implements Iterable<BlockState> {
 
+  /**
+   * A factory for converting palettes from their ProtoBuf form.
+   *
+   * @throws IOException if the properties of any of the palette's states could not be NBT-decoded.
+   */
+  public static Palette fromProto(PaletteData proto) throws IOException {
+    List<BlockState> states = new ArrayList<>();
+
+    // Wrap each state's proto in a BlockState object.
+    for (BlockStateData stateProto : proto.getStatesList()) {
+      BlockState state = BlockState.fromProto(stateProto);
+      states.add(state);
+    }
+
+    return new Palette(proto.getName(), proto.getDataVersion(), states);
+  }
+
   // TODO: 7/28/21 Finish javadocs.
-  // TODO: 7/28/21 Move constructor params & `add(BlockState)` to a builder.
 
-  private final String name;
-  private final int    dataVersion;
-
+  private final String           name;
+  private final int              dataVersion;
   private final List<BlockState> states;
 
-  public Palette(String name, int dataVersion) {
+  /**
+   * @param name        See {@link #getName()}.
+   * @param dataVersion See {@link #getDataVersion()}.
+   * @param states      The block states in the palette. This order is kept, so that {@link
+   *                    #get(int) get()} will return the same block state given an index in the
+   *                    list.
+   */
+  public Palette(String name, int dataVersion, List<BlockState> states) {
     this.name = name;
     this.dataVersion = dataVersion;
-    this.states = new ArrayList<>();
+
+    // Immutably copy the state list.
+    this.states = Collections.unmodifiableList(new ArrayList<>(states));
   }
 
   /**
@@ -48,34 +77,31 @@ public class Palette implements Iterable<BlockState> {
     return states.size();
   }
 
+  /**
+   * @return the block state at the {@code index} in the palette.
+   * @throws IndexOutOfBoundsException if the index is invalid, which happens when {@code index < 0
+   *                                   || index >= size()}.
+   */
   public BlockState get(int index) {
-    // TODO: 7/28/21 Return air for out-of-bounds identifiers.
-    return states.get(index);
-  }
-
-  public int add(BlockState state) {
-    int index = states.indexOf(state);
-    if (index == -1) {
-      index = states.size();
-      states.add(state);
+    if (index < 0 || index >= size()) {
+      throw new IndexOutOfBoundsException("Index must be from 0 to " + (size() - 1) + ": " + index);
     }
-    return index;
+    return states.get(index);
   }
 
   /**
    * @return a Protocol Buffer with the same {@link #getName() name}, {@link #getDataVersion() data
    * version}, and block states as the palette.
-   * @throws IOException if any of the palette's states could not be NBT-encoded.
    */
   public PaletteData toProto() throws IOException {
-    Builder b = PaletteData.newBuilder()
+    Builder palette = PaletteData.newBuilder()
         .setName(name)
         .setDataVersion(dataVersion);
 
     for (BlockState state : states) {
-      b.addStates(state.toProto());
+      palette.addStates(state.toProto());
     }
-    return b.build();
+    return palette.build();
   }
 
   @Override

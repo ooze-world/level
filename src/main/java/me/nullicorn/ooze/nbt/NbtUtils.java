@@ -21,7 +21,7 @@ public final class NbtUtils {
    * name of each child, finally terminated by a {@code TAG_End}.
    * @throws IOException if the compound could not be serialized.
    */
-  public static ByteString toByteString(NBTCompound compound) throws IOException {
+  public static ByteString encodeToBytes(NBTCompound compound) throws IOException {
     if (compound == null) {
       throw new IllegalArgumentException("null compound cannot be converted to proto");
     } else if (compound.isEmpty()) {
@@ -57,6 +57,52 @@ public final class NbtUtils {
     try (NBTInputStream in = new NBTInputStream(proto.newInput(), true, true)) {
       return in.readCompound();
     }
+  }
+
+  public static NBTCompound deepCopy(NBTCompound compound) {
+    return deepCopy(compound);
+  }
+
+  @SuppressWarnings("SuspiciousSystemArraycopy")
+  private static Object deepCopyValue(Object nbt) {
+    Object copy;
+    if (nbt instanceof NBTCompound) {
+      NBTCompound compound = (NBTCompound) nbt;
+      NBTCompound compoundCopy = new NBTCompound();
+
+      // Perform a deep copy on each value, then add
+      // them to the new compound using the same name.
+      compound.forEach((name, value) -> compoundCopy.put(name, deepCopyValue(value)));
+      copy = compoundCopy;
+
+    } else if (nbt instanceof NBTList) {
+      NBTList list = (NBTList) nbt;
+      NBTList listCopy = new NBTList(list.getContentType());
+
+      // Perform a deep copy on each element, then
+      // add them to the new list at the same index.
+      list.forEach(element -> listCopy.add(deepCopyValue(element)));
+      copy = listCopy;
+
+    } else if (nbt instanceof byte[] || nbt instanceof int[] || nbt instanceof long[]) {
+      Class<?> arrayType = nbt.getClass();
+      int arrayLength = Array.getLength(nbt);
+
+      // Copy the array without knowing its type.
+      copy = Array.newInstance(arrayType.getComponentType(), arrayLength);
+      System.arraycopy(nbt, 0, copy, 0, arrayLength);
+
+    } else if (nbt instanceof String || nbt instanceof Byte || nbt instanceof Short
+               || nbt instanceof Integer || nbt instanceof Long || nbt instanceof Float
+               || nbt instanceof Double) {
+      // Already immutable, no need to copy.
+      copy = nbt;
+
+    } else {
+      throw new IllegalArgumentException("Unable to copy NBT value: " + nbt);
+    }
+
+    return copy;
   }
 
   private NbtUtils() {

@@ -12,6 +12,17 @@ import me.nullicorn.ooze.nbt.NbtUtils;
  */
 public class BlockState {
 
+  // TODO: 7/29/21 Make properties immutable.
+
+  /**
+   * A factory for converting block states from their ProtoBuf form.
+   *
+   * @throws IOException if the state's properties could not be NBT-decoded.
+   */
+  public static BlockState fromProto(BlockStateData proto) throws IOException {
+    return new BlockState(proto.getName(), NbtUtils.decodeFromBytes(proto.getProperties()));
+  }
+
   private final String      name;
   private final NBTCompound properties;
 
@@ -69,7 +80,7 @@ public class BlockState {
   public BlockStateData toProto() throws IOException {
     return BlockStateData.newBuilder()
         .setName(name)
-        .setProperties(NbtUtils.toByteString(properties))
+        .setProperties(NbtUtils.encodeToBytes(properties))
         .build();
   }
 }
