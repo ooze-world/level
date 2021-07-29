@@ -14,6 +14,24 @@ import java.util.Objects;
 public class PackedUIntArray {
 
   /**
+   * A factory for converting packed uint arrays from their ProtoBuf form.
+   */
+  public static PackedUIntArray fromProto(PackedUIntArrayData data) {
+    byte[] contents = data.getContents().toByteArray();
+    PackedUIntArray array = new PackedUIntArray(data.getSize(), data.getMagnitude(), contents);
+
+    // Just to be safe, clear any extraneous trailing
+    // bits on the last byte. If set, they would mess
+    // up equals() and hashCode().
+    if (array.magnitude != 0) {
+      long lastBitOffset = array.magnitude * (array.size - 1L) - 1;
+      contents[contents.length - 1] &= ~(array.valueMask << lastBitOffset);
+    }
+
+    return array;
+  }
+
+  /**
    * Helper function for construction.
    *
    * @return the correct length of the {@link #contents} field, given the array's {@code size} and
@@ -48,21 +66,6 @@ public class PackedUIntArray {
   private final int valueMask;
 
   /**
-   * @param data Protocol buffer to copy from.
-   */
-  public PackedUIntArray(PackedUIntArrayData data) {
-    this(data.getSize(), data.getMagnitude(), data.getContents().toByteArray());
-
-    // Just to be safe, clear any extraneous trailing
-    // bits on the last byte. If set, they would mess
-    // up equals() and hashCode().
-    if (magnitude != 0) {
-      long lastBitOffset = magnitude * (size - 1L) - 1;
-      contents[contents.length - 1] &= ~(valueMask << lastBitOffset);
-    }
-  }
-
-  /**
    * @param size      Number of uints the array can hold.
    * @param magnitude Nmber of bits used to store each uint.
    */
@@ -70,6 +73,9 @@ public class PackedUIntArray {
     this(size, magnitude, new byte[bytesNeeded(size, magnitude)]);
   }
 
+  /**
+   * Private constructor for use in static factories.
+   */
   private PackedUIntArray(int size, int magnitude, byte[] contents) {
     this.size = size;
     this.magnitude = magnitude;
