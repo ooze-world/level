@@ -1,7 +1,7 @@
 package me.nullicorn.ooze.storage;
 
+import com.github.ooze.protos.BlockStateData;
 import com.github.ooze.protos.PaletteData;
-import com.github.ooze.protos.PaletteData.BlockStateData;
 import com.github.ooze.protos.PaletteData.Builder;
 import java.io.IOException;
 import java.util.ArrayList;
