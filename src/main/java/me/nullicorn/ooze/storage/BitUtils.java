@@ -9,9 +9,13 @@ public final class BitUtils {
 
   /**
    * @return the minimum number of bits needed to represent the {@code value}.
+   * @apiNote {@code 0} is considered to have a width of {@code 1}.
    */
   public static int widthInBits(int value) {
-    return Math.max(1, Integer.SIZE - Integer.numberOfLeadingZeros(value));
+    if (value == 0) {
+      return 1;
+    }
+    return Integer.SIZE - Integer.numberOfLeadingZeros(value);
   }
 
   /**
