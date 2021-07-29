@@ -1,15 +1,11 @@
 package me.nullicorn.ooze.storage;
 
-import com.github.ooze.protos.BlockStateData;
 import com.github.ooze.protos.PaletteData;
 import com.github.ooze.protos.PaletteData.Builder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import me.nullicorn.nedit.type.NBTCompound;
-import me.nullicorn.ooze.nbt.NbtUtils;
-import me.nullicorn.ooze.storage.Palette.BlockState;
 
 /**
  * @author Nullicorn
@@ -99,45 +95,5 @@ public class Palette implements Iterable<BlockState> {
         return mutableIter.next();
       }
     };
-  }
-
-  public static class BlockState {
-
-    private final String      name;
-    private final NBTCompound properties;
-
-    public BlockState(String name) {
-      this(name, new NBTCompound());
-    }
-
-    public BlockState(String name, NBTCompound properties) {
-      if (name == null) {
-        throw new IllegalArgumentException("name cannot be null");
-      } else if (properties == null) {
-        throw new IllegalArgumentException("properties cannot be null; use an empty compound");
-      }
-
-      this.name = name;
-      this.properties = properties;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public NBTCompound getProperties() {
-      return properties;
-    }
-
-    public boolean hasProperties() {
-      return !properties.isEmpty();
-    }
-
-    public BlockStateData toProto() throws IOException {
-      return BlockStateData.newBuilder()
-          .setName(name)
-          .setProperties(NbtUtils.toByteString(properties))
-          .build();
-    }
   }
 }
