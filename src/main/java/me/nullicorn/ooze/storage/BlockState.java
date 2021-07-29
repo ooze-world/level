@@ -2,6 +2,7 @@ package me.nullicorn.ooze.storage;
 
 import com.github.ooze.protos.BlockStateData;
 import java.io.IOException;
+import java.util.Objects;
 import me.nullicorn.nedit.type.NBTCompound;
 import me.nullicorn.ooze.nbt.NbtUtils;
 
@@ -25,6 +26,9 @@ public class BlockState {
   private final NBTCompound properties;
 
   /**
+   * Same as {@link #BlockState(String, NBTCompound)}, but {@code properties} defaults to an empty
+   * compound.
+   *
    * @param name See {@link #getName()}.
    */
   public BlockState(String name) {
@@ -81,5 +85,32 @@ public class BlockState {
         .setName(name)
         .setProperties(NbtUtils.encodeToBytes(properties))
         .build();
+  }
+
+  @Override
+  public String toString() {
+    String asString = name;
+    if (hasProperties()) {
+      asString += properties.toString();
+    }
+    return asString;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    BlockState state = (BlockState) o;
+    return name.equals(state.name) &&
+           properties.equals(state.properties);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, properties);
   }
 }
