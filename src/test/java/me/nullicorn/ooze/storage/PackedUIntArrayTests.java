@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.github.ooze.protos.PackedUIntArrayData;
 import com.google.protobuf.ByteString;
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -134,5 +135,13 @@ class PackedUIntArrayTests {
     assertEquals(array.size(), proto.getSize());
     assertEquals(array.magnitude(), proto.getMagnitude());
     assertEquals(bytesNeeded(size, magnitude), proto.getContents().size());
+  }
+
+  @Test
+  void shouldTwoArraysEqualWhenExpected() {
+    EqualsVerifier
+        .forClass(PackedUIntArray.class)
+        .withIgnoredFields("valueMask")
+        .verify();
   }
 }

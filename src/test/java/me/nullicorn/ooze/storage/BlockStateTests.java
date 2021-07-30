@@ -7,12 +7,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import me.nullicorn.nedit.type.NBTCompound;
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Nullicorn
  */
 class BlockStateTests {
+
+  // TODO: 7/29/21 Add tests for proto conversion.
 
   @Test
   void shouldFailIfNameIsNull() {
@@ -72,5 +75,13 @@ class BlockStateTests {
 
     BlockState stateWithProperties = new BlockState("ooze:test_state", properties);
     assertTrue(stateWithProperties.hasProperties());
+  }
+
+  @Test
+  void shouldTwoStatesEqualWhenExpected() {
+    EqualsVerifier
+        .forClass(BlockState.class)
+        .withNonnullFields("name", "properties")
+        .verify();
   }
 }

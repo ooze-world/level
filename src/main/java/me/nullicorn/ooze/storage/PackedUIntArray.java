@@ -11,7 +11,7 @@ import java.util.Objects;
  *
  * @author Nullicorn
  */
-public class PackedUIntArray {
+public final class PackedUIntArray {
 
   /**
    * A factory for converting packed uint arrays from their ProtoBuf form.
