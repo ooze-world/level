@@ -28,7 +28,6 @@ class PackedUIntArrayTests {
         .build();
 
     assertThrows(expectedException, () -> PackedUIntArray.fromProto(invalidData));
-    assertThrows(expectedException, () -> new PackedUIntArray(negativeSize, 5));
   }
 
   @ParameterizedTest
@@ -43,84 +42,54 @@ class PackedUIntArrayTests {
         .build();
 
     assertThrows(expectedException, () -> PackedUIntArray.fromProto(invalidData));
-    assertThrows(expectedException, () -> new PackedUIntArray(5, invalidMagnitude));
-  }
-
-  @Test
-  void shouldConstructorInputsBeUsed() {
-    int size = 23;
-    int magnitude = 7;
-    PackedUIntArray array = new PackedUIntArray(size, magnitude);
-
-    assertEquals(size, array.size());
-    assertEquals(magnitude, array.magnitude());
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
-  void shouldMaxValueCorrespondToMagnitude(int magnitude) {
-    long expectedMax = (magnitude == 0)
-        ? 0
-        : 1L << magnitude;
-
-    PackedUIntArray array = new PackedUIntArray(5, magnitude);
-    assertEquals(expectedMax, array.max());
+  @ValueSource(ints = {0, 1, 5, 10, 64, 1000, 4096, Short.MAX_VALUE})
+  void shouldSizeMatchInput(int size) {
+    PackedUIntArray actual = new PackedUIntArray(new int[size]);
+    assertEquals(size, actual.size());
   }
 
-  @Test
-  void shouldAccessorsRejectNegativeIndices() {
-    PackedUIntArray array = new PackedUIntArray(5, 5);
+  @ParameterizedTest
+  @ValueSource(ints = {1, 2, 3, 4, 5, 8, 16, 24, 32})
+  void shouldMagnitudeMatchInput(int magnitude) {
+    int maxValue = BitUtils.createBitMask(magnitude);
 
-    assertThrows(ArrayIndexOutOfBoundsException.class, () -> array.get(-1));
-    assertThrows(ArrayIndexOutOfBoundsException.class, () -> array.set(-1, 0));
+    int[] input = new int[100];
+    input[0] = maxValue;
+
+    PackedUIntArray actual = new PackedUIntArray(input);
+    assertEquals(magnitude, actual.magnitude());
+    assertEquals(Integer.toUnsignedLong(maxValue), actual.max());
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {-1, Byte.MIN_VALUE, Short.MIN_VALUE, Integer.MIN_VALUE})
+  void shouldAccessorsRejectNegativeIndices(int index) {
+    PackedUIntArray array = new PackedUIntArray();
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> array.get(index));
   }
 
   @Test
   void shouldRetrieveCorrectValues() {
     int magnitude = 18;
     int size = 1 << magnitude;
-    PackedUIntArray array = new PackedUIntArray(size, magnitude);
 
     // Set each value in the array to its index.
+    int[] expected = new int[size];
     for (int i = 0; i < size; i++) {
-      array.set(i, i);
+      expected[i] = i;
     }
+
+    PackedUIntArray actual = new PackedUIntArray(expected);
 
     // Check that the correct values were set.
     // This is done separately from the first
     // loop in case a bug causes adjacent uints
     // to overwrite each other.
     for (int i = 0; i < size; i++) {
-      assertEquals(i, array.get(i));
-    }
-  }
-
-  @Test
-  void shouldReplaceExistingValues() {
-    int magnitude = 18;
-    int size = 1 << magnitude;
-    PackedUIntArray array = new PackedUIntArray(size, magnitude);
-
-    // Set all of the array's bits to 1.
-    // This way we make sure bits are cleared
-    // first when replacing.
-    for (int i = 0; i < size; i++) {
-      array.set(i, size - 1);
-    }
-
-    // Set each value in the array to its index.
-    // This is done separately from the first
-    // loop to make sure adjacent replacements
-    // don't interfere with one another.
-    for (int i = 0; i < size; i++) {
-      array.set(i, i);
-    }
-
-    // Check each value. This is separate from
-    // the first two loops for the reason mentioned
-    // above.
-    for (int i = 0; i < size; i++) {
-      assertEquals(i, array.get(i));
+      assertEquals(i, actual.get(i));
     }
   }
 
@@ -129,12 +98,18 @@ class PackedUIntArrayTests {
     int magnitude = 18;
     int size = 1 << magnitude;
 
-    PackedUIntArray array = new PackedUIntArray(size, magnitude);
-    PackedUIntArrayData proto = array.toProto();
+    int[] expected = new int[size];
+    for (int i = 0; i < size; i++) {
+      expected[i] = size - 1;
+    }
 
-    assertEquals(array.size(), proto.getSize());
-    assertEquals(array.magnitude(), proto.getMagnitude());
+    PackedUIntArray actual = new PackedUIntArray(expected);
+    PackedUIntArrayData proto = actual.toProto();
+
+    assertEquals(actual.size(), proto.getSize());
+    assertEquals(actual.magnitude(), proto.getMagnitude());
     assertEquals(bytesNeeded(size, magnitude), proto.getContents().size());
+    assertEquals(actual, PackedUIntArray.fromProto(proto));
   }
 
   @Test

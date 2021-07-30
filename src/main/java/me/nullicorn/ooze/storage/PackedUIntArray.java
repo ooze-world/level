@@ -28,17 +28,7 @@ public final class PackedUIntArray {
     }
 
     byte[] contents = proto.getContents().toByteArray();
-    PackedUIntArray array = new PackedUIntArray(proto.getSize(), proto.getMagnitude(), contents);
-
-    // Just to be safe, clear any extraneous trailing
-    // bits on the last byte. If set, they would mess
-    // up equals() and hashCode().
-    if (array.magnitude != 0) {
-      long lastBitOffset = array.magnitude * (array.size - 1L) - 1;
-      contents[contents.length - 1] &= ~(array.valueMask << lastBitOffset);
-    }
-
-    return array;
+    return new PackedUIntArray(proto.getSize(), proto.getMagnitude(), contents);
   }
 
   /**
@@ -78,47 +68,80 @@ public final class PackedUIntArray {
   private final int valueMask;
 
   /**
-   * @param size      Number of uints the array can hold. Must be at least 0.
-   * @param magnitude Number of bits used to store each uint. Must be in range [0, 32] inclusively.
-   * @throws IllegalArgumentException   if the magnitude is less than 0 or greater than 32.
-   * @throws NegativeArraySizeException if the provided {@code size} is negative.
+   * Copies the contents of a primitive integer array ({@code int[]}) into a packed uint array. The
+   * new array will have the same length as the original, and values in corresponding indices will
+   * be equal.
+   *
+   * @param uints The array's to convert.
+   * @throws IllegalArgumentException if the provided {@code uints} array is {@code null}, or if its
+   *                                  combined size and magnitude lead to integer overflow.
    */
-  public PackedUIntArray(int size, int magnitude) {
-    this(size, magnitude, new byte[bytesNeeded(size, magnitude)]);
+  public PackedUIntArray(int... uints) {
+    if (uints == null) {
+      throw new IllegalArgumentException("null array cannot be converted to a uint array");
+    }
+
+    // Determine which value uses the most bits.
+    int widest = 0;
+    for (int value : uints) {
+      if (value < 0) {
+        // Negative values all use 32 bits,
+        // so if we find any we already know
+        // the magnitude is 32.
+        widest = -1;
+        break;
+      } else if (value > widest) {
+        widest = value;
+      }
+    }
+
+    // Initialize the array.
+    size = uints.length;
+    magnitude = BitUtils.widthInBits(widest);
+    valueMask = BitUtils.createBitMask(magnitude);
+
+    // Populate the array.
+    contents = new byte[bytesNeeded(size, magnitude)];
+    for (int i = 0; i < uints.length; i++) {
+      set(i, uints[i]);
+    }
   }
 
   /**
    * Private constructor for use in static factories.
    *
-   * @throws NegativeArraySizeException See {@link #checkValid()}.
-   * @throws IllegalArgumentException   See {@link #checkValid()}.
+   * @throws NegativeArraySizeException if the provided {@code size} is negative.
+   * @throws IllegalArgumentException   if {@code magnitude < 0 || magnitude > Integer.SIZE}, or if
+   *                                    the {@code contents} array has an unexpected length.
    */
   private PackedUIntArray(int size, int magnitude, byte[] contents) {
-    this.size = size;
-    this.magnitude = magnitude;
-    this.contents = contents;
-    checkValid();
-
-    valueMask = BitUtils.createBitMask(magnitude);
-  }
-
-  /**
-   * Helper function for validating the array's fields after construction.
-   *
-   * @throws NegativeArraySizeException if the array's {@code size} is negative.
-   * @throws IllegalArgumentException   if {@code magnitude < 0 || magnitude > Integer.SIZE}, or if
-   *                                    the content array has an unexpected length.
-   */
-  private void checkValid() {
     if (size < 0) {
       throw new NegativeArraySizeException(Integer.toString(size));
     } else if (magnitude < 0 || magnitude > Integer.SIZE) {
       throw new IllegalArgumentException("magnitude must be in range [0, 32]: " + magnitude);
     }
 
-    int expectedBytes = bytesNeeded(size, magnitude);
-    if (contents.length != expectedBytes) {
-      throw new IllegalArgumentException(expectedBytes + " bytes expected, not " + contents.length);
+    int bytesNeeded = bytesNeeded(size, magnitude);
+    if (contents.length != bytesNeeded) {
+      throw new IllegalArgumentException(bytesNeeded + " bytes expected, not " + contents.length);
+    }
+
+    this.size = size;
+    this.magnitude = magnitude;
+    this.contents = contents;
+    this.valueMask = BitUtils.createBitMask(magnitude);
+
+    // Just to be safe, clear any extraneous trailing
+    // bits on the last byte. If set, they would mess
+    // up equals() and hashCode().
+    if (magnitude != 0) {
+      // Determine which bit the last uint ends on.
+      long lastBitOffset = magnitude * (size - 1L) - 1;
+
+      // Shift the mask past the last uint & negate it.
+      // This will unset any bits that aren't part of a
+      // uint.
+      contents[contents.length - 1] &= ~(valueMask << lastBitOffset);
     }
   }
 
@@ -144,12 +167,13 @@ public final class PackedUIntArray {
   public long max() {
     return magnitude == 0
         ? 0L
-        : 1L << magnitude;
+        : Integer.toUnsignedLong(valueMask);
   }
 
   /**
    * @param index Zero-based index of the uint.
-   * @return the uint value at the index.
+   * @return the uint value at the index. If the value is negative, {@link
+   * Integer#toUnsignedLong(int) toUnsignedLong()} can be used to determine the actual value.
    * @throws ArrayIndexOutOfBoundsException if the {@code index} is negative, or if it
    *                                        equals/exceeds the array's {@link #size() size}.
    */
@@ -166,7 +190,7 @@ public final class PackedUIntArray {
    * @throws IllegalArgumentException       if the {@code value}, when unsigned, exceeds the array's
    *                                        {@link #max() maximum value}.
    */
-  public int set(int index, int value) {
+  private int set(int index, int value) {
     return getOrReplace(index, true, value);
   }
 
