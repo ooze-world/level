@@ -21,7 +21,9 @@ public final class Palette implements Iterable<BlockState> {
   /**
    * A factory for converting palettes from their ProtoBuf form.
    *
-   * @throws IOException if the properties of any of the palette's states could not be NBT-decoded.
+   * @throws IOException              if the properties of any of the palette's states could not be
+   *                                  NBT-decoded.
+   * @throws IllegalArgumentException if the {@code proto} is null.
    */
   public static Palette fromProto(PaletteData proto) throws IOException {
     if (proto == null) {
@@ -49,6 +51,8 @@ public final class Palette implements Iterable<BlockState> {
    * @param states      The block states in the palette. This order is kept, so that {@link
    *                    #get(int) get()} will return the same block state given an index in the
    *                    list.
+   * @throws IllegalArgumentException if the {@code name} or {@code states} list are {@code null},
+   *                                  or if any state in the list is {@code null}.
    */
   public Palette(String name, int dataVersion, List<BlockState> states) {
     if (name == null) {
@@ -58,8 +62,8 @@ public final class Palette implements Iterable<BlockState> {
     }
 
     // Make sure this list doesn't contain any null states.
-    for (int i = 0; i < states.size(); i++){
-      if (states.get(i) == null){
+    for (int i = 0; i < states.size(); i++) {
+      if (states.get(i) == null) {
         throw new IllegalArgumentException("state cannot be null (i=" + i + ")");
       }
     }

@@ -15,6 +15,12 @@ public final class PackedUIntArray {
 
   /**
    * A factory for converting packed uint arrays from their ProtoBuf form.
+   *
+   * @throws NegativeArraySizeException if the array size specified by the {@code proto} is
+   *                                    negative.
+   * @throws IllegalArgumentException   if the proto itself is {@code null}, if its magnitude is
+   *                                    outside the range [0, 32], or if its content array is
+   *                                    malformed.
    */
   public static PackedUIntArray fromProto(PackedUIntArrayData proto) {
     if (proto == null) {
@@ -40,6 +46,8 @@ public final class PackedUIntArray {
    *
    * @return the correct length of the {@link #contents} field, given the array's {@code size} and
    * {@code magnitude}.
+   * @throws IllegalArgumentException if the combined size and magnitude cannot be used due to
+   *                                  integer overflow.
    */
   static int bytesNeeded(int size, long magnitude) {
     long bytesNeeded = Math.floorDiv(size * magnitude, Byte.SIZE) + 1;
@@ -70,8 +78,10 @@ public final class PackedUIntArray {
   private final int valueMask;
 
   /**
-   * @param size      Number of uints the array can hold.
-   * @param magnitude Nmber of bits used to store each uint.
+   * @param size      Number of uints the array can hold. Must be at least 0.
+   * @param magnitude Number of bits used to store each uint. Must be in range [0, 32] inclusively.
+   * @throws IllegalArgumentException   if the magnitude is less than 0 or greater than 32.
+   * @throws NegativeArraySizeException if the provided {@code size} is negative.
    */
   public PackedUIntArray(int size, int magnitude) {
     this(size, magnitude, new byte[bytesNeeded(size, magnitude)]);
@@ -79,6 +89,9 @@ public final class PackedUIntArray {
 
   /**
    * Private constructor for use in static factories.
+   *
+   * @throws NegativeArraySizeException See {@link #checkValid()}.
+   * @throws IllegalArgumentException   See {@link #checkValid()}.
    */
   private PackedUIntArray(int size, int magnitude, byte[] contents) {
     this.size = size;
@@ -91,6 +104,10 @@ public final class PackedUIntArray {
 
   /**
    * Helper function for validating the array's fields after construction.
+   *
+   * @throws NegativeArraySizeException if the array's {@code size} is negative.
+   * @throws IllegalArgumentException   if {@code magnitude < 0 || magnitude > Integer.SIZE}, or if
+   *                                    the content array has an unexpected length.
    */
   private void checkValid() {
     if (size < 0) {
@@ -227,8 +244,8 @@ public final class PackedUIntArray {
 
   /**
    * @return a Protocol Buffer with the same {@link #size() size}, {@link #magnitude() magnitude},
-   * and contents as the array. The buffer can be passed to {@link #PackedUIntArray(PackedUIntArrayData)
-   * this constructor} to create an identical array.
+   * and contents as the array. The buffer can be passed to {@link #fromProto(PackedUIntArrayData)
+   * fromProto()} to create an identical array.
    */
   public PackedUIntArrayData toProto() {
     return PackedUIntArrayData.newBuilder()

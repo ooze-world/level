@@ -16,7 +16,8 @@ public final class BlockState {
   /**
    * A factory for converting block states from their ProtoBuf form.
    *
-   * @throws IOException if the state's properties could not be NBT-decoded.
+   * @throws IOException              if the state's properties could not be NBT-decoded.
+   * @throws IllegalArgumentException if the {@code proto} is {@code null}.
    */
   public static BlockState fromProto(BlockStateData proto) throws IOException {
     if (proto == null) {
@@ -40,7 +41,10 @@ public final class BlockState {
 
   /**
    * @param name       See {@link #getName()}.
-   * @param properties See {@link #getProperties()}.
+   * @param properties See {@link #getProperties()}. If a state has no properties, this should be an
+   *                   empty compound, not {@code null}.
+   * @throws IllegalArgumentException if the provided {@code name} or {@code properties} are {@code
+   *                                  null}.
    */
   public BlockState(String name, NBTCompound properties) {
     if (name == null) {

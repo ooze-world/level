@@ -19,6 +19,8 @@ public final class NbtUtils {
   /**
    * Copies the contents of a {@code compound} into a new compound that cannot be modified,
    * disregarding reflection or similar methods.
+   *
+   * @throws IllegalArgumentException if the provided {@code compound} is {@code null}.
    */
   public static NBTCompound copyToImmutable(NBTCompound compound) {
     return new ImmutableCompound(compound);
@@ -29,7 +31,8 @@ public final class NbtUtils {
    *
    * @return a string of bytes, representing an NBT-encoded compound. This includes the type and
    * name of each child, finally terminated by a {@code TAG_End}.
-   * @throws IOException if the compound could not be serialized.
+   * @throws IOException              if the compound could not be serialized.
+   * @throws IllegalArgumentException if the {@code compound} is {@code null}.
    */
   public static ByteString encodeToBytes(NBTCompound compound) throws IOException {
     if (compound == null) {
@@ -53,7 +56,8 @@ public final class NbtUtils {
    *              type, name, and value. As specified by the NBT format, the last byte must be a
    *              {@code TAG_End}, even if there are no other tags.
    * @return the compound represented by the bytes.
-   * @throws IOException if the byte string was not an NBT-encoded compound.
+   * @throws IOException              if the byte string was not an NBT-encoded compound.
+   * @throws IllegalArgumentException if the {@code proto} is {@code null}.
    */
   public static NBTCompound decodeFromBytes(ByteString proto) throws IOException {
     if (proto == null) {
@@ -75,6 +79,8 @@ public final class NbtUtils {
    *
    * @param nbt The tag to copy.
    * @param <T> The runtime class of the NBT type.
+   * @throws IllegalArgumentException if the {@code nbt} value is {@code null}, or if it's class has
+   *                                  no corresponding NBT type.
    */
   // Suppressed so we can copy differently based on class, including arrays with an unknown type.
   @SuppressWarnings({"SuspiciousSystemArraycopy", "unchecked"})
