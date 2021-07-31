@@ -1,6 +1,6 @@
-package me.nullicorn.ooze.storage;
+package me.nullicorn.ooze.level;
 
-import static me.nullicorn.ooze.storage.PackedUIntArray.bytesNeeded;
+import static me.nullicorn.ooze.level.PackedUIntArray.bytesNeeded;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 

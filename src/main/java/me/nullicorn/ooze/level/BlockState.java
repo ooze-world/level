@@ -1,4 +1,4 @@
-package me.nullicorn.ooze.storage;
+package me.nullicorn.ooze.level;
 
 import com.github.ooze.protos.BlockStateData;
 import java.io.IOException;

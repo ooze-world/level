@@ -1,4 +1,4 @@
-package me.nullicorn.ooze.storage;
+package me.nullicorn.ooze.level;
 
 import java.util.Arrays;
 import java.util.BitSet;

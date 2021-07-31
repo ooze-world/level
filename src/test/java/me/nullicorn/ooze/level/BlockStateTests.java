@@ -1,4 +1,4 @@
-package me.nullicorn.ooze.storage;
+package me.nullicorn.ooze.level;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
