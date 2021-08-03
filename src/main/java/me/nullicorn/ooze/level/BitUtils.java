@@ -8,7 +8,7 @@ import java.util.BitSet;
  *
  * @author Nullicorn
  */
-final class BitUtils {
+public final class BitUtils {
 
   /**
    * @return the minimum number of bits needed to represent the {@code value}.
