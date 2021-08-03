@@ -22,7 +22,7 @@ public class RegionCompactArrayCodec {
   /**
    * Helper function that encodes arrays using the new format (padded).
    */
-  private long[] encodePadded(int[] values, int magnitude) {
+  private static long[] encodePadded(int[] values, int magnitude) {
     int valuesPerWord = Long.SIZE / magnitude;
     int wordsNeeded = (int) Math.ceil((double) values.length / valuesPerWord);
     int valueMask = BitUtils.createBitMask(magnitude);
@@ -49,7 +49,7 @@ public class RegionCompactArrayCodec {
   /**
    * Helper function that encodes arrays using the old format (unpadded).
    */
-  private long[] encodeUnpadded(int[] values, int magnitude) {
+  private static long[] encodeUnpadded(int[] values, int magnitude) {
     int wordsNeeded = (int) Math.ceil(magnitude * values.length / 64d);
 
     long[] words = new long[wordsNeeded];
@@ -80,7 +80,7 @@ public class RegionCompactArrayCodec {
   /**
    * Helper function that decodes arrays using the new format (padded).
    */
-  private int[] decodePadded(long[] words, int magnitude) {
+  private static int[] decodePadded(long[] words, int magnitude) {
     int valuesPerWord = Long.SIZE / magnitude;
     int valueMask = BitUtils.createBitMask(magnitude);
 
@@ -135,6 +135,13 @@ public class RegionCompactArrayCodec {
 
   private final DataVersion version;
 
+  /**
+   * Creates a codec compatible with a specific Minecraft {@code version}.
+   *
+   * @throws IllegalArgumentException if the {@code version} is {@code null}, or if it does not
+   *                                  support {@link DataVersion#isPaletteSupported() compact arrays
+   *                                  / palettes}.
+   */
   public RegionCompactArrayCodec(DataVersion version) {
     if (version == null) {
       throw new IllegalArgumentException("version cannot be null");
