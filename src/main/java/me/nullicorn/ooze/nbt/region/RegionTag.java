@@ -27,7 +27,7 @@ public enum RegionTag {
    * <p><br>
    * Located at the root of a compound in an anvil world file.
    */
-  ROOT_DATA_VERSION("DataVersion", TagType.INT),
+  ROOT_DATA_VERSION("DataVersion", TagType.INT, 100),
 
   /*
    * Tags within the "Level" compounds of the `region` directory.
@@ -76,7 +76,7 @@ public enum RegionTag {
    * Data versions prior to {@code 1466} (1.13.x) should use {@link #CHUNK_HAS_LIGHT} and {@link
    * #CHUNK_HAS_BLOCKS} instead.
    */
-  CHUNK_STATUS("Status", TagType.STRING),
+  CHUNK_STATUS("Status", TagType.STRING, 1466),
 
   /**
    * Whether or not the game has calculated light levels for the chunk yet.
@@ -84,7 +84,7 @@ public enum RegionTag {
    * As of data version {@code 1466} (1.13.x), this tag is deprecated in favor of {@link
    * #CHUNK_STATUS}.
    */
-  CHUNK_HAS_LIGHT("LightPopulated", TagType.BYTE),
+  CHUNK_HAS_LIGHT("LightPopulated", TagType.BYTE, 99, 1465),
 
   /**
    * Whether or not the game has calculated light levels for the chunk yet.
@@ -92,7 +92,7 @@ public enum RegionTag {
    * As of data version {@code 1466} (1.13.x), this tag is deprecated in favor of {@link
    * #CHUNK_STATUS}.
    */
-  CHUNK_HAS_BLOCKS("TerrainPopulated", TagType.BYTE),
+  CHUNK_HAS_BLOCKS("TerrainPopulated", TagType.BYTE, 99, 1465),
 
   /*
    * Tags within the compound elements of a chunk's "Sections".
@@ -116,7 +116,7 @@ public enum RegionTag {
    * <p><br>
    * Located in the compounds of a chunk's {@link #CHUNK_SECTIONS section list}.
    */
-  SECTION_PALETTE("Palette", TagType.LIST),
+  SECTION_PALETTE("Palette", TagType.LIST, 1451),
 
   /**
    * A {@link RegionCompactArrayCodec compact array} of 4096 integers (e.g. multiple values in a
@@ -128,7 +128,7 @@ public enum RegionTag {
    * <p><br>
    * Located in the compounds of a chunk's {@link #CHUNK_SECTIONS section list}.
    */
-  SECTION_BLOCKS("BlockStates", TagType.LONG_ARRAY),
+  SECTION_BLOCKS("BlockStates", TagType.LONG_ARRAY, 1451),
 
   /**
    * An array of 4096 block IDs for the section. Blocks appear in YZX order, meaning all blocks with
@@ -140,7 +140,7 @@ public enum RegionTag {
    * <p><br>
    * Located in the compounds of a chunk's {@link #CHUNK_SECTIONS section list}.
    */
-  LEGACY_SECTION_BLOCKS("Blocks", TagType.BYTE_ARRAY),
+  LEGACY_SECTION_BLOCKS("Blocks", TagType.BYTE_ARRAY, 99, 1450),
 
   /**
    * An array of 2048 octets, each containing two of the data/damage values for corresponding blocks
@@ -155,7 +155,7 @@ public enum RegionTag {
    * <p><br>
    * Located in the compounds of a chunk's {@link #CHUNK_SECTIONS section list}.
    */
-  LEGACY_SECTION_BLOCK_STATES("Data", TagType.BYTE_ARRAY),
+  LEGACY_SECTION_BLOCK_STATES("Data", TagType.BYTE_ARRAY, 99, 1450),
 
   /**
    * An optional array of 2048 octets, each containing a pair of 4-bit values that can be used to
@@ -172,7 +172,7 @@ public enum RegionTag {
    * <p><br>
    * Located in the compounds of a chunk's {@link #CHUNK_SECTIONS section list}.
    */
-  LEGACY_SECTION_BLOCK_EXTENSIONS("Add", TagType.BYTE_ARRAY),
+  LEGACY_SECTION_BLOCK_EXTENSIONS("Add", TagType.BYTE_ARRAY, 99, 1450),
 
   /*
    * Tags that make up entries of a section's "Palette".
@@ -185,7 +185,7 @@ public enum RegionTag {
    * <p><br>
    * Located in the compounds of a section's {@link #SECTION_PALETTE palette}.
    */
-  BLOCK_NAME("Name", TagType.STRING),
+  BLOCK_NAME("Name", TagType.STRING, 1451),
 
   /**
    * An optional compound that defines extra information about a block's state. This includes things
@@ -193,7 +193,7 @@ public enum RegionTag {
    * <p><br>
    * Located in the compounds of a section's {@link #SECTION_PALETTE palette}.
    */
-  BLOCK_PROPERTIES("Properties", TagType.COMPOUND),
+  BLOCK_PROPERTIES("Properties", TagType.COMPOUND, 1451),
 
   /*
    * Tags relating to the positions of blocks-entities and entities.
@@ -251,7 +251,7 @@ public enum RegionTag {
    * <p><br>
    * Located at the root of a compound in an anvil world file.
    */
-  ENTITY_CHUNK_LIST("Entities", TagType.LIST),
+  ENTITY_CHUNK_LIST("Entities", TagType.LIST, 2679),
 
   /**
    * A list of two integers, indicating the X and Y coordinates of the chunk respectively.
@@ -261,31 +261,54 @@ public enum RegionTag {
    * <p><br>
    * Located at the root of a compound in an anvil world file.
    */
-  ENTITY_CHUNK_POSITION("Position", TagType.INT_ARRAY);
+  ENTITY_CHUNK_POSITION("Position", TagType.INT_ARRAY, 2679);
 
   private final String  name;
   private final TagType expectedType;
+  private final int     minVersion;
+  private final int     maxVersion;
 
   RegionTag(String name, TagType type) {
+    this(name, type, 99);
+  }
+
+  RegionTag(String name, TagType type, int lowestVersion) {
+    this(name, type, lowestVersion, Integer.MAX_VALUE);
+  }
+
+  RegionTag(String name, TagType type, int lowestVersion, int highestVersion) {
     this.name = name;
     this.expectedType = type;
+    this.minVersion = lowestVersion;
+    this.maxVersion = highestVersion;
+  }
+
+  /**
+   * @return {@code true} if the tag is supported by the Minecraft world version. Otherwise {@code
+   * false}.
+   */
+  public boolean isSupportedIn(int dataVersion) {
+    return dataVersion >= minVersion && dataVersion <= maxVersion;
   }
 
   /**
    * Gets the value of the tag as the direct child of a compound.
    *
-   * @param compound   The compound to try and get the tag's value from.
-   * @param isRequired If {@code true}, an {@link IOException} is thrown if the tag cannot be found
-   *                   in the compound. If {@code false}, {@code null} is returned in that
-   *                   scenario.
-   * @param <T>        The expected runtime type of the value.
+   * @param compound    The compound to try and get the tag's value from.
+   * @param isRequired  If {@code true}, an {@link IOException} is thrown if the tag cannot be found
+   *                    in the compound. If {@code false}, {@code null} is returned in that
+   *                    scenario.
+   * @param dataVersion The Minecraft world version that the value is being retrieved for.
+   * @param <T>         The expected runtime type of the value.
    * @return the tag's value in the compound, or {@code null} if {@code isRequired == false} and the
    * compound does not contain a tag with the expected name and type.
    * @throws IOException              if {@code isRequired == true} and the compound does not
    *                                  contain a tag with the expected name and type.
    * @throws IllegalArgumentException if the input compound is null.
    */
-  public <T> T getFrom(NBTCompound compound, boolean isRequired) throws IOException {
+  public <T> T getFrom(NBTCompound compound, boolean isRequired, int dataVersion) throws IOException {
+    checkVersion(dataVersion);
+
     if (compound == null) {
       throw new IllegalArgumentException("Cannot get tag " + this + " from null compound");
     }
@@ -306,13 +329,16 @@ public enum RegionTag {
   /**
    * Sets the value of the tag as the direct child of the input compound.
    *
-   * @param compound The compound to set the tag's value in.
-   * @param value    The value to set the tag to.
+   * @param compound    The compound to set the tag's value in.
+   * @param value       The value to set the tag to.
+   * @param dataVersion The Minecraft world version that the value is being retrieved for.
    * @throws IllegalArgumentException      if the compound or value are {@code null}, or if the
    *                                       value's class is not compatible with the tag's NBT type.
    * @throws UnsupportedOperationException if the compound is immutable.
    */
-  public void setFor(NBTCompound compound, Object value) {
+  public void setFor(NBTCompound compound, Object value, int dataVersion) {
+    checkVersion(dataVersion);
+
     if (compound == null) {
       throw new IllegalArgumentException("Cannot set tag " + this + " for null compound");
     } else if (value == null) {
@@ -325,5 +351,21 @@ public enum RegionTag {
     }
 
     compound.put(name, value);
+  }
+
+  /**
+   * @throws IllegalArgumentException if the tag is not compatible with the provided {@code
+   *                                  dataVersion}.
+   */
+  private void checkVersion(int dataVersion) {
+    if (!isSupportedIn(dataVersion)) {
+      String reason = "Tag " + this + " requires ";
+
+      reason += (maxVersion == Integer.MAX_VALUE)
+          ? "at least version " + minVersion
+          : "version in range [" + minVersion + ", " + maxVersion + "]";
+
+      throw new IllegalArgumentException(reason + ", not " + dataVersion);
+    }
   }
 }

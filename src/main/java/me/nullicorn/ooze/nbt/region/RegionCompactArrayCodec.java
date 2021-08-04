@@ -1,5 +1,7 @@
 package me.nullicorn.ooze.nbt.region;
 
+import static me.nullicorn.ooze.nbt.region.RegionTag.SECTION_BLOCKS;
+
 import me.nullicorn.ooze.level.BitUtils;
 
 /**
@@ -9,6 +11,11 @@ import me.nullicorn.ooze.level.BitUtils;
  * @author Nullicorn
  */
 public class RegionCompactArrayCodec {
+
+  /**
+   * The data version when values were no longer able to be split across multiple longs.
+   */
+  private static final int USE_PADDING_VERSION = 2527;
 
   /**
    * @throws IllegalArgumentException if the magnitude is invalid for a 32-bit integer.
@@ -133,30 +140,27 @@ public class RegionCompactArrayCodec {
     return values;
   }
 
-  private final DataVersion version;
+  private final int dataVersion;
 
   /**
-   * Creates a codec compatible with a specific Minecraft {@code version}.
+   * Creates a codec compatible with a specific Minecraft {@code dataVersion}.
    *
-   * @throws IllegalArgumentException if the {@code version} is {@code null}, or if it does not
-   *                                  support {@link DataVersion#isPaletteSupported() compact arrays
-   *                                  / palettes}.
+   * @throws IllegalArgumentException if the {@code dataVersion} does not support 64-bit compact
+   *                                  arrays.
    */
-  public RegionCompactArrayCodec(DataVersion version) {
-    if (version == null) {
-      throw new IllegalArgumentException("version cannot be null");
-    } else if (!version.isPaletteSupported()) {
-      throw new IllegalArgumentException("version does not support 64-bit block encoding");
+  public RegionCompactArrayCodec(int dataVersion) {
+    if (!SECTION_BLOCKS.isSupportedIn(dataVersion)) {
+      throw new IllegalArgumentException("64-bit block encoding not supported by " + dataVersion);
     }
 
-    this.version = version;
+    this.dataVersion = dataVersion;
   }
 
   /**
    * @return the Minecraft world version that the codec is compatible with.
    */
-  public DataVersion getCompatibility() {
-    return version;
+  public int getCompatibility() {
+    return dataVersion;
   }
 
   /**
@@ -164,17 +168,14 @@ public class RegionCompactArrayCodec {
    * using the number of bits specified by the {@code magnitude}. For values that exceed that
    * magnitude, any higher-order bits will be treated as {@code 0}s.
    * <p>
-   * See the link below for the encoded format. If the version supports {@link
-   * DataVersion#isBlockArrayPadded() padded values}, the newer encoding is used. Otherwise, the
-   * older one is used.
+   * See the link below for the encoded format. If {@link #getCompatibility() version} {@code >=
+   * 2527}, the newer encoding is used. Otherwise the older one is used.
    *
    * @param values    A plain array of the values to be encoded.
    * @param magnitude The number of bits used to represent values within the words.
    * @return the input values, packed into 64-bit words.
    * @throws IllegalArgumentException if the magnitude is not in the range {@code (0, 32]}. Also if
-   *                                  the version is {@code null}, or if it {@link
-   *                                  DataVersion#isPaletteSupported() does not support} this
-   *                                  encoding. Also if the {@code values} array is {@code null}.
+   *                                  the {@code values} array is {@code null}.
    * @see <a href=https://wiki.vg/Chunk_Format#Compacted_data_array>Compact data array format</a>
    */
   public long[] encode(int[] values, int magnitude) {
@@ -183,7 +184,7 @@ public class RegionCompactArrayCodec {
       throw new IllegalArgumentException("null values array cannot be encoded");
     }
 
-    return version.isBlockArrayPadded()
+    return dataVersion >= USE_PADDING_VERSION
         ? encodePadded(values, magnitude)
         : encodeUnpadded(values, magnitude);
   }
@@ -204,7 +205,7 @@ public class RegionCompactArrayCodec {
       throw new IllegalArgumentException("null words array cannot be decoded");
     }
 
-    return version.isBlockArrayPadded()
+    return dataVersion >= USE_PADDING_VERSION
         ? decodePadded(words, magnitude)
         : decodeUnpadded(words, magnitude);
   }

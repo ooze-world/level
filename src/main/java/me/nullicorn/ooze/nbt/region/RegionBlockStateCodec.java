@@ -14,28 +14,26 @@ import me.nullicorn.ooze.level.BlockState;
  */
 public class RegionBlockStateCodec {
 
-  private final DataVersion version;
+  private final int version;
 
   /**
-   * Creates a codec compatible with a specific Minecraft {@code version}.
+   * Creates a codec compatible with a specific Minecraft {@code dataVersion}.
    *
-   * @throws IllegalArgumentException if the {@code version} is {@code null}, or if it does not
-   *                                  support {@link DataVersion#isPaletteSupported() palettes}.
+   * @throws IllegalArgumentException if the {@code dataVersion} does not support compound block
+   *                                  states.
    */
-  public RegionBlockStateCodec(DataVersion version) {
-    if (version == null) {
-      throw new IllegalArgumentException("version cannot be null");
-    } else if (!version.isPaletteSupported()) {
-      throw new IllegalArgumentException("version does not support block state palettes");
+  public RegionBlockStateCodec(int dataVersion) {
+    if (!BLOCK_NAME.isSupportedIn(dataVersion) || !BLOCK_PROPERTIES.isSupportedIn(dataVersion)) {
+      throw new IllegalArgumentException("Compound block states not supported in " + dataVersion);
     }
 
-    this.version = version;
+    this.version = dataVersion;
   }
 
   /**
    * @return the Minecraft world version that the codec is compatible with.
    */
-  public DataVersion getCompatibility() {
+  public int getCompatibility() {
     return version;
   }
 
@@ -57,14 +55,14 @@ public class RegionBlockStateCodec {
 
     NBTCompound encoded = new NBTCompound();
 
-    BLOCK_NAME.setFor(encoded, state.getName());
+    BLOCK_NAME.setFor(encoded, state.getName(), version);
     if (state.hasProperties()) {
       // Copy the properties to a mutable compound so
       // that the caller can modify them if needed.
       NBTCompound properties = new NBTCompound();
       properties.putAll(state.getProperties());
 
-      BLOCK_PROPERTIES.setFor(encoded, properties);
+      BLOCK_PROPERTIES.setFor(encoded, properties, version);
     }
 
     return encoded;
@@ -83,8 +81,8 @@ public class RegionBlockStateCodec {
       throw new IllegalArgumentException("null cannot be decoded as a block state");
     }
 
-    String name = BLOCK_NAME.getFrom(state, true);
-    NBTCompound properties = BLOCK_PROPERTIES.getFrom(state, false);
+    String name = BLOCK_NAME.getFrom(state, true, version);
+    NBTCompound properties = BLOCK_PROPERTIES.getFrom(state, false, version);
 
     if (properties == null) {
       return new BlockState(name);
