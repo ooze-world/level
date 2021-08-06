@@ -12,9 +12,7 @@ import me.nullicorn.ooze.level.BlockState;
  *
  * @author Nullicorn
  */
-public class RegionBlockStateCodec {
-
-  private final int version;
+public class RegionBlockStateCodec extends VersionedCodec {
 
   /**
    * Creates a codec compatible with a specific Minecraft {@code dataVersion}.
@@ -23,18 +21,7 @@ public class RegionBlockStateCodec {
    *                                  states.
    */
   public RegionBlockStateCodec(int dataVersion) {
-    if (!BLOCK_NAME.isSupportedIn(dataVersion) || !BLOCK_PROPERTIES.isSupportedIn(dataVersion)) {
-      throw new IllegalArgumentException("Compound block states not supported in " + dataVersion);
-    }
-
-    this.version = dataVersion;
-  }
-
-  /**
-   * @return the Minecraft world version that the codec is compatible with.
-   */
-  public int getCompatibility() {
-    return version;
+    super(dataVersion, BLOCK_NAME, BLOCK_PROPERTIES);
   }
 
   /**
@@ -55,14 +42,14 @@ public class RegionBlockStateCodec {
 
     NBTCompound encoded = new NBTCompound();
 
-    BLOCK_NAME.setFor(encoded, state.getName(), version);
+    BLOCK_NAME.setFor(encoded, state.getName(), dataVersion);
     if (state.hasProperties()) {
       // Copy the properties to a mutable compound so
       // that the caller can modify them if needed.
       NBTCompound properties = new NBTCompound();
       properties.putAll(state.getProperties());
 
-      BLOCK_PROPERTIES.setFor(encoded, properties, version);
+      BLOCK_PROPERTIES.setFor(encoded, properties, dataVersion);
     }
 
     return encoded;
@@ -81,8 +68,8 @@ public class RegionBlockStateCodec {
       throw new IllegalArgumentException("null cannot be decoded as a block state");
     }
 
-    String name = BLOCK_NAME.getFrom(state, true, version);
-    NBTCompound properties = BLOCK_PROPERTIES.getFrom(state, false, version);
+    String name = BLOCK_NAME.getFrom(state, true, dataVersion);
+    NBTCompound properties = BLOCK_PROPERTIES.getFrom(state, false, dataVersion);
 
     if (properties == null) {
       return new BlockState(name);

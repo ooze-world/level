@@ -10,7 +10,7 @@ import me.nullicorn.ooze.level.BitUtils;
  *
  * @author Nullicorn
  */
-public class RegionCompactArrayCodec {
+public class RegionCompactArrayCodec extends VersionedCodec {
 
   /**
    * The data version when values were no longer able to be split across multiple longs.
@@ -140,8 +140,6 @@ public class RegionCompactArrayCodec {
     return values;
   }
 
-  private final int dataVersion;
-
   /**
    * Creates a codec compatible with a specific Minecraft {@code dataVersion}.
    *
@@ -149,18 +147,7 @@ public class RegionCompactArrayCodec {
    *                                  arrays.
    */
   public RegionCompactArrayCodec(int dataVersion) {
-    if (!SECTION_BLOCKS.isSupportedIn(dataVersion)) {
-      throw new IllegalArgumentException("64-bit block encoding not supported by " + dataVersion);
-    }
-
-    this.dataVersion = dataVersion;
-  }
-
-  /**
-   * @return the Minecraft world version that the codec is compatible with.
-   */
-  public int getCompatibility() {
-    return dataVersion;
+    super(dataVersion, SECTION_BLOCKS);
   }
 
   /**
