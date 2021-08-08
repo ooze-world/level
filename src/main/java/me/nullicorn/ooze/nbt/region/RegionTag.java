@@ -1,15 +1,17 @@
 package me.nullicorn.ooze.nbt.region;
 
-import java.io.IOException;
+import java.util.Optional;
 import me.nullicorn.nedit.type.NBTCompound;
+import me.nullicorn.nedit.type.NBTList;
 import me.nullicorn.nedit.type.TagType;
+import me.nullicorn.ooze.nbt.VersionedTag;
 
 /**
  * An assortment of NBT tags used by Minecraft for storing chunk information.
  *
  * @author Nullicorn
  */
-public enum RegionTag {
+public enum RegionTag implements VersionedTag {
 
   /*
    * Tags within the root compounds of the `region` directory.
@@ -20,14 +22,14 @@ public enum RegionTag {
    * <p><br>
    * Located at the root of a compound in an anvil world file.
    */
-  ROOT_CHUNK("Level", TagType.COMPOUND),
+  CHUNK("Level", TagType.COMPOUND),
 
   /**
    * The version that a chunk was last saved in.
    * <p><br>
    * Located at the root of a compound in an anvil world file.
    */
-  ROOT_DATA_VERSION("DataVersion", TagType.INT, 100),
+  DATA_VERSION("DataVersion", TagType.INT, 100),
 
   /*
    * Tags within the "Level" compounds of the `region` directory.
@@ -36,45 +38,45 @@ public enum RegionTag {
   /**
    * The chunk's location along the X axis, measured in 16-block units.
    * <p><br>
-   * Located in the {@link #ROOT_CHUNK chunk tag}.
+   * Located in the {@link #CHUNK chunk tag}.
    */
   CHUNK_POS_X("xPos", TagType.INT),
 
   /**
    * The chunk's location along the Z axis, measured in 16-block units.
    * <p><br>
-   * Located in the {@link #ROOT_CHUNK chunk tag}.
+   * Located in the {@link #CHUNK chunk tag}.
    */
   CHUNK_POS_Z("zPos", TagType.INT),
 
   /**
    * A list of 16-block tall cubes that store portions of the chunk's blocks.
    * <p><br>
-   * Located in the {@link #ROOT_CHUNK chunk tag}.
+   * Located in the {@link #CHUNK chunk tag}.
    */
-  CHUNK_SECTIONS("Sections", TagType.LIST),
+  CHUNK_SECTIONS("Sections", TagType.LIST, TagType.COMPOUND),
 
   /**
    * A list compounds containing information about each mob/object inside the chunk's horizontal
    * boundaries.
    * <p><br>
    * Only valid within a world's {@code region} directory. As of data version {@code 2679} (1.17.x),
-   * the tag is still supported, but {@link #ENTITY_CHUNK_LIST} and {@link #ENTITY_CHUNK_POSITION}
+   * the tag is still supported, but {@link #ENTITY_STORAGE_LIST} and {@link #ENTITY_STORAGE_POS}
    * are preferred.
    */
-  CHUNK_ENTITIES("Entities", TagType.LIST),
+  CHUNK_ENTITIES("Entities", TagType.LIST, TagType.COMPOUND),
 
   /**
    * A list of compounds containing information about each block in the chunk with metadata
    * (containers, moving pistons, etc).
    */
-  CHUNK_BLOCK_ENTITIES("TileEntities", TagType.LIST),
+  CHUNK_BLOCK_ENTITIES("TileEntities", TagType.LIST, TagType.COMPOUND),
 
   /**
    * The chunk's generation state.
    * <p><br>
-   * Data versions prior to {@code 1466} (1.13.x) should use {@link #CHUNK_HAS_LIGHT} and {@link
-   * #CHUNK_HAS_BLOCKS} instead.
+   * Data versions prior to {@code 1466} (1.13.x) should use {@link #IS_LIGHT_GENERATED} and {@link
+   * #IS_TERRAIN_GENERATED} instead.
    */
   CHUNK_STATUS("Status", TagType.STRING, 1466),
 
@@ -84,7 +86,7 @@ public enum RegionTag {
    * As of data version {@code 1466} (1.13.x), this tag is deprecated in favor of {@link
    * #CHUNK_STATUS}.
    */
-  CHUNK_HAS_LIGHT("LightPopulated", TagType.BYTE, 99, 1465),
+  IS_LIGHT_GENERATED("LightPopulated", TagType.BYTE, 99, 1465),
 
   /**
    * Whether or not the game has calculated light levels for the chunk yet.
@@ -92,7 +94,7 @@ public enum RegionTag {
    * As of data version {@code 1466} (1.13.x), this tag is deprecated in favor of {@link
    * #CHUNK_STATUS}.
    */
-  CHUNK_HAS_BLOCKS("TerrainPopulated", TagType.BYTE, 99, 1465),
+  IS_TERRAIN_GENERATED("TerrainPopulated", TagType.BYTE, 99, 1465),
 
   /*
    * Tags within the compound elements of a chunk's "Sections".
@@ -111,24 +113,24 @@ public enum RegionTag {
    * Each block state is a compound containing a {@link #BLOCK_NAME name}, and optionally {@link
    * #BLOCK_PROPERTIES extra properties}.
    * <p><br>
-   * Data versions prior to {@code 1451} (1.13.x) should use {@link #LEGACY_SECTION_BLOCKS}, {@link
-   * #LEGACY_SECTION_BLOCK_STATES}, and {@link #LEGACY_SECTION_BLOCK_EXTENSIONS} instead.
+   * Data versions prior to {@code 1451} (1.13.x) should use {@link #BLOCKS_LEGACY}, {@link
+   * #BLOCK_STATES_LEGACY}, and {@link #BLOCK_EXTENSIONS_LEGACY} instead.
    * <p><br>
    * Located in the compounds of a chunk's {@link #CHUNK_SECTIONS section list}.
    */
-  SECTION_PALETTE("Palette", TagType.LIST, 1451),
+  PALETTE("Palette", TagType.LIST, TagType.COMPOUND, 1451),
 
   /**
    * A {@link RegionCompactArrayCodec compact array} of 4096 integers (e.g. multiple values in a
    * single longs; the number of longs in the array is always less).
    * <p><br>
    * Each compacted value in the array is an index pointing to a state in the section's {@link
-   * #SECTION_PALETTE palette}. The array's {@code magnitude} is the number of bits needed to hold
-   * the palette's last index.
+   * #PALETTE palette}. The array's {@code magnitude} is the number of bits needed to hold the
+   * palette's last index.
    * <p><br>
    * Located in the compounds of a chunk's {@link #CHUNK_SECTIONS section list}.
    */
-  SECTION_BLOCKS("BlockStates", TagType.LONG_ARRAY, 1451),
+  BLOCKS("BlockStates", TagType.LONG_ARRAY, 1451),
 
   /**
    * An array of 4096 block IDs for the section. Blocks appear in YZX order, meaning all blocks with
@@ -136,43 +138,43 @@ public enum RegionTag {
    * <p><br>
    * "Block ID" refers to the unique numeric identifiers assigned to blocks and items in older
    * versions of Minecraft. As of data version {@code 1451} (1.13.x), this tag is deprecated in
-   * favor of {@link #SECTION_BLOCKS} and {@link #SECTION_PALETTE}.
+   * favor of {@link #BLOCKS} and {@link #PALETTE}.
    * <p><br>
    * Located in the compounds of a chunk's {@link #CHUNK_SECTIONS section list}.
    */
-  LEGACY_SECTION_BLOCKS("Blocks", TagType.BYTE_ARRAY, 99, 1450),
+  BLOCKS_LEGACY("Blocks", TagType.BYTE_ARRAY, 99, 1450),
 
   /**
    * An array of 2048 octets, each containing two of the data/damage values for corresponding blocks
-   * in the {@link #LEGACY_SECTION_BLOCKS block array}.
+   * in the {@link #BLOCKS_LEGACY block array}.
    * <p><br>
    * Each octet contains two data/damage values. Given an index in the block array, the
    * corresponding data value can be found in the octet at {@code index / 2}. Even-number indices
    * use the octet's lowest four bits, and odd-number indices use the highest 4 bits.
    * <p><br>
-   * As of data version {@code 1451} (1.13.x), this tag is deprecated in favor of {@link
-   * #SECTION_BLOCKS} and {@link #SECTION_PALETTE}.
+   * As of data version {@code 1451} (1.13.x), this tag is deprecated in favor of {@link #BLOCKS}
+   * and {@link #PALETTE}.
    * <p><br>
    * Located in the compounds of a chunk's {@link #CHUNK_SECTIONS section list}.
    */
-  LEGACY_SECTION_BLOCK_STATES("Data", TagType.BYTE_ARRAY, 99, 1450),
+  BLOCK_STATES_LEGACY("Data", TagType.BYTE_ARRAY, 99, 1450),
 
   /**
    * An optional array of 2048 octets, each containing a pair of 4-bit values that can be used to
-   * extend the {@link #LEGACY_SECTION_BLOCKS block array}.
+   * extend the {@link #BLOCKS_LEGACY block array}.
    * <p><br>
    * Extension allows block IDs to use up to 12 bits, rather than the usual 8-bit cap imposed by the
    * block array. Extensions are applied by taking the corresponding 4 bits from this array,
    * left-shifting them 8 bits, and then adding the result to the corresponding block ID. The 4-bit
-   * groups of this array are indexed exactly the same as the {@link #LEGACY_SECTION_BLOCK_STATES
-   * data array}.
+   * groups of this array are indexed exactly the same as the {@link #BLOCK_STATES_LEGACY data
+   * array}.
    * <p><br>
-   * As of data version {@code 1451} (1.13.x), this tag is deprecated in favor of {@link
-   * #SECTION_BLOCKS} and {@link #SECTION_PALETTE}.
+   * As of data version {@code 1451} (1.13.x), this tag is deprecated in favor of {@link #BLOCKS}
+   * and {@link #PALETTE}.
    * <p><br>
    * Located in the compounds of a chunk's {@link #CHUNK_SECTIONS section list}.
    */
-  LEGACY_SECTION_BLOCK_EXTENSIONS("Add", TagType.BYTE_ARRAY, 99, 1450),
+  BLOCK_EXTENSIONS_LEGACY("Add", TagType.BYTE_ARRAY, 99, 1450),
 
   /*
    * Tags that make up entries of a section's "Palette".
@@ -183,7 +185,7 @@ public enum RegionTag {
    * <p><br>
    * e.g. {@code minecraft:stone}, {@code air}, {@code namespace:value}, etc.
    * <p><br>
-   * Located in the compounds of a section's {@link #SECTION_PALETTE palette}.
+   * Located in the compounds of a section's {@link #PALETTE palette}.
    */
   BLOCK_NAME("Name", TagType.STRING, 1451),
 
@@ -191,7 +193,7 @@ public enum RegionTag {
    * An optional compound that defines extra information about a block's state. This includes things
    * like orientation, power, level, etc.
    * <p><br>
-   * Located in the compounds of a section's {@link #SECTION_PALETTE palette}.
+   * Located in the compounds of a section's {@link #PALETTE palette}.
    */
   BLOCK_PROPERTIES("Properties", TagType.COMPOUND, 1451),
 
@@ -204,39 +206,39 @@ public enum RegionTag {
    * order.
    * <p><br>
    * Located in the compounds of a chunk's {@link #CHUNK_ENTITIES entity list}, or in an
-   * entity-chunk's {@link #ENTITY_CHUNK_LIST entries} (data versions {@code 2679}+ only).
+   * entity-chunk's {@link #ENTITY_STORAGE_LIST entries} (data versions {@code 2679}+ only).
    */
-  POS_ENTITY("Pos", TagType.LIST),
+  ENTITY_POS("Pos", TagType.LIST, TagType.DOUBLE),
 
   /**
    * An integer indicating a block-entity's absolute X coordinate in the world.
    * <p><br>
    * Located in the compounds of a chunk's {@link #CHUNK_BLOCK_ENTITIES block-entity list}.
    *
-   * @see #POS_Y_BLOCK_ENTITY
-   * @see #POS_Z_BLOCK_ENTITY
+   * @see #BLOCK_ENTITY_POS_Y
+   * @see #BLOCK_ENTITY_POS_Z
    */
-  POS_X_BLOCK_ENTITY("x", TagType.INT),
+  BLOCK_ENTITY_POS_X("x", TagType.INT),
 
   /**
    * An integer indicating a block-entity's absolute Y coordinate in the world.
    * <p><br>
    * Located in the compounds of a chunk's {@link #CHUNK_BLOCK_ENTITIES block-entity list}.
    *
-   * @see #POS_X_BLOCK_ENTITY
-   * @see #POS_Z_BLOCK_ENTITY
+   * @see #BLOCK_ENTITY_POS_X
+   * @see #BLOCK_ENTITY_POS_Z
    */
-  POS_Y_BLOCK_ENTITY("y", TagType.INT),
+  BLOCK_ENTITY_POS_Y("y", TagType.INT),
 
   /**
    * An integer indicating a block-entity's absolute Z coordinate in the world.
    * <p><br>
    * Located in the compounds of a chunk's {@link #CHUNK_BLOCK_ENTITIES block-entity list}.
    *
-   * @see #POS_X_BLOCK_ENTITY
-   * @see #POS_Y_BLOCK_ENTITY
+   * @see #BLOCK_ENTITY_POS_X
+   * @see #BLOCK_ENTITY_POS_Y
    */
-  POS_Z_BLOCK_ENTITY("z", TagType.INT),
+  BLOCK_ENTITY_POS_Z("z", TagType.INT),
 
   /*
    * Tags within the root compounds of the `entities` directory.
@@ -251,7 +253,7 @@ public enum RegionTag {
    * <p><br>
    * Located at the root of a compound in an anvil world file.
    */
-  ENTITY_CHUNK_LIST("Entities", TagType.LIST, 2679),
+  ENTITY_STORAGE_LIST("Entities", TagType.LIST, TagType.COMPOUND, 2679),
 
   /**
    * A list of two integers, indicating the X and Y coordinates of the chunk respectively.
@@ -261,111 +263,131 @@ public enum RegionTag {
    * <p><br>
    * Located at the root of a compound in an anvil world file.
    */
-  ENTITY_CHUNK_POSITION("Position", TagType.INT_ARRAY, 2679);
+  ENTITY_STORAGE_POS("Position", TagType.INT_ARRAY, 2679);
 
-  private final String  name;
-  private final TagType expectedType;
+  private final String  tagName;
+  private final TagType tagType;
+  private final TagType listType;
   private final int     minVersion;
   private final int     maxVersion;
 
-  RegionTag(String name, TagType type) {
-    this(name, type, 99);
+  RegionTag(String tagName, TagType tagType) {
+    this(tagName, tagType, 99);
   }
 
-  RegionTag(String name, TagType type, int lowestVersion) {
-    this(name, type, lowestVersion, Integer.MAX_VALUE);
+  RegionTag(String tagName, TagType tagType, int since) {
+    this(tagName, tagType, null, since, Integer.MAX_VALUE);
   }
 
-  RegionTag(String name, TagType type, int lowestVersion, int highestVersion) {
-    this.name = name;
-    this.expectedType = type;
-    this.minVersion = lowestVersion;
-    this.maxVersion = highestVersion;
+  RegionTag(String tagName, TagType tagType, int since, int until) {
+    this(tagName, tagType, null, since, until);
   }
 
-  /**
-   * @return {@code true} if the tag is supported by the Minecraft world version. Otherwise {@code
-   * false}.
-   */
-  public boolean isSupportedIn(int dataVersion) {
+  RegionTag(String tagName, TagType tagType, TagType listType) {
+    this(tagName, tagType, listType, 99);
+  }
+
+  RegionTag(String tagName, TagType tagType, TagType listType, int since) {
+    this(tagName, tagType, listType, since, Integer.MAX_VALUE);
+  }
+
+  RegionTag(String tagName, TagType tagType, TagType listType, int since, int until) {
+    if (tagName == null) {
+      throw new IllegalArgumentException("null is not a valid tagName");
+    } else if (tagType == null || tagType == TagType.END) {
+      throw new IllegalArgumentException("tagType is invalid: " + tagType);
+    } else if (listType != null && tagType != TagType.LIST) {
+      throw new IllegalArgumentException("listType is only valid for lists, not " + tagType);
+    } else if (since > until) {
+      throw new IllegalArgumentException("First version exceeds last: " + since + " > " + until);
+    }
+
+    this.tagName = tagName;
+    this.tagType = tagType;
+    this.listType = listType;
+    this.minVersion = since;
+    this.maxVersion = until;
+  }
+
+  @Override
+  public String tagName() {
+    return tagName;
+  }
+
+  @Override
+  public TagType tagType() {
+    return tagType;
+  }
+
+  @Override
+  public boolean isSupported(int dataVersion) {
     return dataVersion >= minVersion && dataVersion <= maxVersion;
   }
 
-  /**
-   * Gets the value of the tag as the direct child of a compound.
-   *
-   * @param compound    The compound to try and get the tag's value from.
-   * @param isRequired  If {@code true}, an {@link IOException} is thrown if the tag cannot be found
-   *                    in the compound. If {@code false}, {@code null} is returned in that
-   *                    scenario.
-   * @param dataVersion The Minecraft world version that the value is being retrieved for.
-   * @param <T>         The expected runtime type of the value.
-   * @return the tag's value in the compound, or {@code null} if {@code isRequired == false} and the
-   * compound does not contain a tag with the expected name and type.
-   * @throws IOException              if {@code isRequired == true} and the compound does not
-   *                                  contain a tag with the expected name and type.
-   * @throws IllegalArgumentException if the input compound is null.
-   */
-  public <T> T getFrom(NBTCompound compound, boolean isRequired, int dataVersion) throws IOException {
-    checkVersion(dataVersion);
-
+  @Override
+  public <T> Optional<T> valueIn(NBTCompound compound, Class<T> runtimeType) {
     if (compound == null) {
-      throw new IllegalArgumentException("Cannot get tag " + this + " from null compound");
+      throw new IllegalArgumentException("Cannot get value of tag " + this + " from null compound");
     }
 
-    Object value = compound.get(name);
-    if (value == null || TagType.fromObject(value) != expectedType) {
-      if (isRequired) {
-        throw new IOException(expectedType + " tag \"" + name + "\" not found: " + compound);
-      }
-      return null;
+    // Make sure the runtime type matches that of the
+    // NBT type.
+    Class<?> expectedClass = tagType.getRuntimeType();
+    if (runtimeType != expectedClass) {
+      throw new IllegalArgumentException("Runtime type should be " + expectedClass +
+                                         ", not " + runtimeType);
     }
 
-    // Suppressed because the type is implicitly checked via TagType.
+    // Get the value and make sure it is the correct
+    // type.
+    Object value = compound.get(tagName());
+    if (value == null || value.getClass() != tagType.getRuntimeType()) {
+      return Optional.empty();
+    }
+
+    // Suppressed because class is checked above.
     // noinspection unchecked
-    return (T) value;
+    return (Optional<T>) Optional.of(value);
   }
 
-  /**
-   * Sets the value of the tag as the direct child of the input compound.
-   *
-   * @param compound    The compound to set the tag's value in.
-   * @param value       The value to set the tag to.
-   * @param dataVersion The Minecraft world version that the value is being retrieved for.
-   * @throws IllegalArgumentException      if the compound or value are {@code null}, or if the
-   *                                       value's class is not compatible with the tag's NBT type.
-   * @throws UnsupportedOperationException if the compound is immutable.
-   */
-  public void setFor(NBTCompound compound, Object value, int dataVersion) {
-    checkVersion(dataVersion);
-
+  @Override
+  public void setValueIn(NBTCompound compound, Object value) {
     if (compound == null) {
       throw new IllegalArgumentException("Cannot set tag " + this + " for null compound");
     } else if (value == null) {
-      throw new IllegalArgumentException("NBT value cannot be null");
+      throw new IllegalArgumentException("null is not a valid value for tag " + this);
+    } else if (tagType != TagType.fromObject(value)) {
+      // The value cannot be converted to the correct NBT type.
+      throw new IllegalArgumentException("Invalid value for tag " + this + ": " + value);
     }
 
-    TagType actualType = TagType.fromObject(value);
-    if (actualType != expectedType) {
-      throw new IllegalArgumentException("Value must be " + expectedType + ", not " + actualType);
+    // If the tag is a list, make sure the content type is correct.
+    if (value instanceof NBTList && listType != null) {
+      NBTList list = (NBTList) value;
+      TagType actualListType = list.getContentType();
+
+      if (listType != actualListType) {
+        // The value is a list, but it's element-type doesn't match the expected one.
+        throw new IllegalArgumentException("Tag " + this + " expects a list of " + list +
+                                           ", but got a list of " + actualListType +
+                                           ": " + value);
+      }
     }
 
-    compound.put(name, value);
+    compound.put(tagName, value);
   }
 
-  /**
-   * @throws IllegalArgumentException if the tag is not compatible with the provided {@code
-   *                                  dataVersion}.
-   */
-  private void checkVersion(int dataVersion) {
-    if (!isSupportedIn(dataVersion)) {
-      String reason = "Tag " + this + " requires ";
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder(tagName)
+        .append('(')
+        .append(tagType);
 
-      reason += (maxVersion == Integer.MAX_VALUE)
-          ? "at least version " + minVersion
-          : "version in range [" + minVersion + ", " + maxVersion + "]";
-
-      throw new IllegalArgumentException(reason + ", not " + dataVersion);
+    if (listType != null) {
+      sb.append(':').append(listType);
     }
+
+    // Format: name(TYPE) or name(TYPE:ELEMENT_TYPE)
+    return sb.append(')').toString();
   }
 }

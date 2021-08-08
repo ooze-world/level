@@ -1,4 +1,4 @@
-package me.nullicorn.ooze.nbt.region;
+package me.nullicorn.ooze.nbt;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,18 +12,18 @@ public abstract class VersionedCodec {
 
   /**
    * @throws IllegalArgumentException if the {@code tags} array is {@code null}, or if any of its
-   *                                  values are not {@link RegionTag#isSupportedIn(int) supported}
-   *                                  in the {@code dataVersion} specified.
+   *                                  values are not {@link VersionedTag#isSupported(int) supported} in
+   *                                  the {@code dataVersion} specified.
    */
-  private static void ensureTagsAreAvailable(int dataVersion, RegionTag[] tags) {
+  private static void ensureTagsAreAvailable(int dataVersion, VersionedTag[] tags) {
     if (tags == null) {
       throw new IllegalArgumentException("tags array cannot be null");
     }
 
     // Find any tags that aren't supported by the dataVersion.
-    Set<RegionTag> unavailableTags = new HashSet<>(tags.length);
-    for (RegionTag tag : tags) {
-      if (!tag.isSupportedIn(dataVersion)) {
+    Set<VersionedTag> unavailableTags = new HashSet<>(tags.length);
+    for (VersionedTag tag : tags) {
+      if (!tag.isSupported(dataVersion)) {
         unavailableTags.add(tag);
       }
     }
@@ -51,10 +51,10 @@ public abstract class VersionedCodec {
    * @param dataVersion  The version the codec should be compatible with. See {@link #dataVersion}.
    * @param requiredTags Any tags that the codec must be able to use when encoding & decoding.
    * @throws IllegalArgumentException if any of the {@code requiredTags} are {@link
-   *                                  RegionTag#isSupportedIn(int) incompatible} with the {@code
+   *                                  VersionedTag#isSupported(int) incompatible} with the {@code
    *                                  dataVersion}.
    */
-  protected VersionedCodec(int dataVersion, RegionTag... requiredTags) {
+  protected VersionedCodec(int dataVersion, VersionedTag... requiredTags) {
     this.dataVersion = dataVersion;
 
     if (requiredTags != null && requiredTags.length > 0) {

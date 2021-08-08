@@ -1,8 +1,7 @@
 package me.nullicorn.ooze.nbt.region;
 
-import static me.nullicorn.ooze.nbt.region.RegionTag.SECTION_BLOCKS;
-
 import me.nullicorn.ooze.level.BitUtils;
+import me.nullicorn.ooze.nbt.VersionedCodec;
 
 /**
  * Provides translation between integer arrays and Minecraft's <a href=https://wiki.vg/Chunk_Format#Compacted_data_array>packed
@@ -147,7 +146,7 @@ public class RegionCompactArrayCodec extends VersionedCodec {
    *                                  arrays.
    */
   public RegionCompactArrayCodec(int dataVersion) {
-    super(dataVersion, SECTION_BLOCKS);
+    super(dataVersion, RegionTag.BLOCKS);
   }
 
   /**

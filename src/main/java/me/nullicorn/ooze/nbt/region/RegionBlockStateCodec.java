@@ -1,11 +1,10 @@
 package me.nullicorn.ooze.nbt.region;
 
-import static me.nullicorn.ooze.nbt.region.RegionTag.BLOCK_NAME;
-import static me.nullicorn.ooze.nbt.region.RegionTag.BLOCK_PROPERTIES;
-
 import java.io.IOException;
 import me.nullicorn.nedit.type.NBTCompound;
 import me.nullicorn.ooze.level.BlockState;
+import me.nullicorn.ooze.nbt.VersionedCodec;
+import me.nullicorn.ooze.nbt.VersionedTag;
 
 /**
  * Provides serialization to and from NBT block states stored in palettes.
@@ -14,6 +13,9 @@ import me.nullicorn.ooze.level.BlockState;
  */
 public class RegionBlockStateCodec extends VersionedCodec {
 
+  private static final VersionedTag NAME_TAG       = RegionTag.BLOCK_NAME;
+  private static final VersionedTag PROPERTIES_TAG = RegionTag.BLOCK_PROPERTIES;
+
   /**
    * Creates a codec compatible with a specific Minecraft {@code dataVersion}.
    *
@@ -21,7 +23,7 @@ public class RegionBlockStateCodec extends VersionedCodec {
    *                                  states.
    */
   public RegionBlockStateCodec(int dataVersion) {
-    super(dataVersion, BLOCK_NAME, BLOCK_PROPERTIES);
+    super(dataVersion, NAME_TAG, PROPERTIES_TAG);
   }
 
   /**
@@ -42,14 +44,14 @@ public class RegionBlockStateCodec extends VersionedCodec {
 
     NBTCompound encoded = new NBTCompound();
 
-    BLOCK_NAME.setFor(encoded, state.getName(), dataVersion);
+    NAME_TAG.setValueIn(encoded, state.getName());
     if (state.hasProperties()) {
       // Copy the properties to a mutable compound so
       // that the caller can modify them if needed.
       NBTCompound properties = new NBTCompound();
       properties.putAll(state.getProperties());
 
-      BLOCK_PROPERTIES.setFor(encoded, properties, dataVersion);
+      PROPERTIES_TAG.setValueIn(encoded, properties);
     }
 
     return encoded;
@@ -68,12 +70,17 @@ public class RegionBlockStateCodec extends VersionedCodec {
       throw new IllegalArgumentException("null cannot be decoded as a block state");
     }
 
-    String name = BLOCK_NAME.getFrom(state, true, dataVersion);
-    NBTCompound properties = BLOCK_PROPERTIES.getFrom(state, false, dataVersion);
+    return NAME_TAG
+        .valueIn(state, String.class)
+        .map(name -> {
+          // Use an empty compound if the state
+          // has no properties.
+          NBTCompound properties = PROPERTIES_TAG
+              .valueIn(state, NBTCompound.class)
+              .orElseGet(NBTCompound::new);
 
-    if (properties == null) {
-      return new BlockState(name);
-    }
-    return new BlockState(name, properties);
+          // Create the final state.
+          return new BlockState(name, properties);
+        }).orElseThrow(() -> new IOException("State has no name: " + state));
   }
 }
