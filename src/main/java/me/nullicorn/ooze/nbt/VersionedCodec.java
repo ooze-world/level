@@ -12,8 +12,8 @@ public abstract class VersionedCodec {
 
   /**
    * @throws IllegalArgumentException if the {@code tags} array is {@code null}, or if any of its
-   *                                  values are not {@link VersionedTag#isSupported(int) supported} in
-   *                                  the {@code dataVersion} specified.
+   *                                  values are not {@link VersionedTag#isSupported(int) supported}
+   *                                  in the {@code dataVersion} specified.
    */
   private static void ensureTagsAreAvailable(int dataVersion, VersionedTag[] tags) {
     if (tags == null) {
