@@ -15,7 +15,7 @@ import java.util.TreeMap;
 import me.nullicorn.nedit.type.NBTCompound;
 import me.nullicorn.nedit.type.NBTList;
 import me.nullicorn.nedit.type.TagType;
-import me.nullicorn.ooze.nbt.NbtUtils;
+import me.nullicorn.ooze.nbt.NbtHelper;
 
 /**
  * Basic information about a compact Minecraft world. The level itself is comprised of cubes called
@@ -152,16 +152,16 @@ public class Level {
     Builder builder = LevelData.newBuilder();
 
     // Custom info about the level.
-    builder.setMetadata(NbtUtils.encodeToBytes(metadata));
+    builder.setMetadata(NbtHelper.encodeToBytes(metadata));
 
     // Regular entities (mobs, objects, etc).
     for (Object entity : entities) {
-      builder.addEntities(NbtUtils.encodeToBytes((NBTCompound) entity));
+      builder.addEntities(NbtHelper.encodeToBytes((NBTCompound) entity));
     }
 
     // Block entities (aka tile entities).
     for (Object blockEntity : blockEntities) {
-      builder.addBlockEntities(NbtUtils.encodeToBytes((NBTCompound) blockEntity));
+      builder.addBlockEntities(NbtHelper.encodeToBytes((NBTCompound) blockEntity));
     }
 
     // Determine the level's size using the
@@ -202,7 +202,7 @@ public class Level {
     });
 
     // Tell the level which cells we added above.
-    byte[] populationBytes = BitUtils.bitsToBytes(population, populationSize);
+    byte[] populationBytes = BitHelper.bitsToBytes(population, populationSize);
     builder.setPopulation(ByteString.copyFrom(populationBytes));
 
     // Tell the level which types of blocks it can use.

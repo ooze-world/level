@@ -54,7 +54,7 @@ class PackedUIntArrayTests {
   @ParameterizedTest
   @ValueSource(ints = {1, 2, 3, 4, 5, 8, 16, 24, 32})
   void shouldMagnitudeMatchInput(int magnitude) {
-    int maxValue = BitUtils.createBitMask(magnitude);
+    int maxValue = BitHelper.createBitMask(magnitude);
 
     int[] input = new int[100];
     input[0] = maxValue;

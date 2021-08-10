@@ -102,7 +102,7 @@ public final class Palette implements Iterable<BlockState> {
    */
   public int magnitude() {
     int maxIndex = Math.max(0, states.size() - 1);
-    return BitUtils.widthInBits(maxIndex);
+    return BitHelper.widthInBits(maxIndex);
   }
 
   /**

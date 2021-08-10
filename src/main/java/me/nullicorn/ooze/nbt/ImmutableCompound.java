@@ -13,7 +13,7 @@ import me.nullicorn.nedit.type.NBTCompound;
  * An immutable wrapper around the NBTCompound class.
  *
  * @author Nullicorn
- * @implNote Created externally via {@link NbtUtils#copyToImmutable(NBTCompound) NbtUtils}.
+ * @implNote Created externally via {@link NbtHelper#copyToImmutable(NBTCompound) NbtHelper}.
  */
 class ImmutableCompound extends NBTCompound {
 
@@ -34,7 +34,7 @@ class ImmutableCompound extends NBTCompound {
     if (source == null) {
       throw new IllegalArgumentException("source compound cannot be null");
     }
-    source.forEach((name, value) -> super.put(name, NbtUtils.deepCopy(value)));
+    source.forEach((name, value) -> super.put(name, NbtHelper.deepCopy(value)));
   }
 
   @Override

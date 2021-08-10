@@ -8,7 +8,7 @@ import java.util.BitSet;
  *
  * @author Nullicorn
  */
-public final class BitUtils {
+public final class BitHelper {
 
   /**
    * @return the minimum number of bits needed to represent the {@code value}.
@@ -40,7 +40,7 @@ public final class BitUtils {
     return Arrays.copyOf(bits.toByteArray(), sizeInBytes);
   }
 
-  private BitUtils() {
-    throw new UnsupportedOperationException("BitUtils should not be instantiated");
+  private BitHelper() {
+    throw new UnsupportedOperationException(getClass() + " should not be instantiated");
   }
 }

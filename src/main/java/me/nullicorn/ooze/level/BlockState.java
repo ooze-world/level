@@ -4,7 +4,7 @@ import com.github.ooze.protos.BlockStateData;
 import java.io.IOException;
 import java.util.Objects;
 import me.nullicorn.nedit.type.NBTCompound;
-import me.nullicorn.ooze.nbt.NbtUtils;
+import me.nullicorn.ooze.nbt.NbtHelper;
 
 /**
  * Information about a type of block in Minecraft.
@@ -23,7 +23,7 @@ public final class BlockState {
     if (proto == null) {
       throw new IllegalArgumentException("null proto cannot be converted to a block state");
     }
-    return new BlockState(proto.getName(), NbtUtils.decodeFromBytes(proto.getProperties()));
+    return new BlockState(proto.getName(), NbtHelper.decodeFromBytes(proto.getProperties()));
   }
 
   private final String      name;
@@ -54,7 +54,7 @@ public final class BlockState {
     }
 
     this.name = name;
-    this.properties = NbtUtils.copyToImmutable(properties);
+    this.properties = NbtHelper.copyToImmutable(properties);
   }
 
   /**
@@ -90,7 +90,7 @@ public final class BlockState {
   public BlockStateData toProto() throws IOException {
     return BlockStateData.newBuilder()
         .setName(name)
-        .setProperties(NbtUtils.encodeToBytes(properties))
+        .setProperties(NbtHelper.encodeToBytes(properties))
         .build();
   }
 

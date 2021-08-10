@@ -1,6 +1,6 @@
 package me.nullicorn.ooze.nbt.region;
 
-import me.nullicorn.ooze.level.BitUtils;
+import me.nullicorn.ooze.level.BitHelper;
 import me.nullicorn.ooze.nbt.VersionedCodec;
 
 /**
@@ -31,7 +31,7 @@ public class RegionCompactArrayCodec extends VersionedCodec {
   private static long[] encodePadded(int[] values, int magnitude) {
     int valuesPerWord = Long.SIZE / magnitude;
     int wordsNeeded = (int) Math.ceil((double) values.length / valuesPerWord);
-    int valueMask = BitUtils.createBitMask(magnitude);
+    int valueMask = BitHelper.createBitMask(magnitude);
 
     long[] words = new long[wordsNeeded];
 
@@ -60,7 +60,7 @@ public class RegionCompactArrayCodec extends VersionedCodec {
 
     long[] words = new long[wordsNeeded];
 
-    int valueMask = BitUtils.createBitMask(magnitude);
+    int valueMask = BitHelper.createBitMask(magnitude);
     for (int i = 0, word = 0, ofst = 0; i < values.length; i++) {
       int value = values[i] & valueMask;
       words[word] |= value << ofst;
@@ -88,7 +88,7 @@ public class RegionCompactArrayCodec extends VersionedCodec {
    */
   private static int[] decodePadded(long[] words, int magnitude) {
     int valuesPerWord = Long.SIZE / magnitude;
-    int valueMask = BitUtils.createBitMask(magnitude);
+    int valueMask = BitHelper.createBitMask(magnitude);
 
     int[] values = new int[valuesPerWord * words.length];
 
@@ -106,7 +106,7 @@ public class RegionCompactArrayCodec extends VersionedCodec {
    * Helper function that decodes arrays using the old format (unpadded).
    */
   private int[] decodeUnpadded(long[] words, int magnitude) {
-    int valueMask = BitUtils.createBitMask(magnitude);
+    int valueMask = BitHelper.createBitMask(magnitude);
 
     int[] values = new int[words.length * 64 / magnitude];
 

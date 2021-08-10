@@ -14,7 +14,7 @@ import me.nullicorn.nedit.type.NBTList;
  *
  * @author Nullicorn
  */
-public final class NbtUtils {
+public final class NbtHelper {
 
   /**
    * Copies the contents of a {@code compound} into a new compound that cannot be modified,
@@ -130,7 +130,7 @@ public final class NbtUtils {
     return (T) copy;
   }
 
-  private NbtUtils() {
-    throw new UnsupportedOperationException("NbtUtils should not be instantiated");
+  private NbtHelper() {
+    throw new UnsupportedOperationException(getClass() + " should not be instantiated");
   }
 }
