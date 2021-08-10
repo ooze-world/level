@@ -98,6 +98,14 @@ public final class Palette implements Iterable<BlockState> {
   }
 
   /**
+   * @return the number of bits needed to hold any of the palette's indices.
+   */
+  public int magnitude() {
+    int maxIndex = Math.max(0, states.size() - 1);
+    return BitUtils.widthInBits(maxIndex);
+  }
+
+  /**
    * @return whether the palette has any states in it. {@code true} only when {@code size() == 0}.
    */
   public boolean isEmpty() {
