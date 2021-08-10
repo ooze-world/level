@@ -9,22 +9,27 @@ import me.nullicorn.nedit.type.NBTCompound;
 import me.nullicorn.nedit.type.NBTList;
 import me.nullicorn.nedit.type.TagType;
 import me.nullicorn.ooze.level.BlockState;
-import me.nullicorn.ooze.nbt.ArrayUIntMap;
 import me.nullicorn.ooze.level.Palette;
+import me.nullicorn.ooze.nbt.ArrayUIntMap;
 import me.nullicorn.ooze.nbt.VersionedCodec;
 
 /**
+ * Provides serialization to and from lists of NBT block states, also known as a palette.
+ *
  * @author Nullicorn
  */
 public class RegionPaletteCodec extends VersionedCodec {
 
-  private final int                   dataVersion;
   private final RegionBlockStateCodec blockStateCodec;
 
+  /**
+   * Creates a codec compatible with a specific Minecraft {@code dataVersion}.
+   *
+   * @throws IllegalArgumentException if the {@code dataVersion} does not support palettes.
+   */
   public RegionPaletteCodec(int dataVersion) {
     super(dataVersion, RegionTag.PALETTE);
 
-    this.dataVersion = dataVersion;
     this.blockStateCodec = new RegionBlockStateCodec(dataVersion);
   }
 
@@ -36,6 +41,10 @@ public class RegionPaletteCodec extends VersionedCodec {
    * indexRemap} (where the original index is the key, and the encoded index is the value). The map
    * should be used to convert any encoded data that depends on the palette, such as arrays of
    * blocks.
+   * <p><br>
+   * The resulting list will have a {@link NBTList#getContentType() content-type} of {@link
+   * TagType#COMPOUND COMPOUND}, where each entry in the list is an {@link RegionBlockStateCodec
+   * NBT-encoded block state}.
    *
    * @param palette     The palette whose states should be encoded.
    * @param statesInUse A bit field indicating which states in the palette should be included in the
@@ -43,6 +52,7 @@ public class RegionPaletteCodec extends VersionedCodec {
    * @param indexRemap  An empty map that changed indices will be added to.
    * @return An NBT-encoded palette containing only states that are used.
    * @throws IllegalArgumentException if any of the arguments are {@code null}.
+   * @see RegionBlockStateCodec
    */
   public NBTList encode(Palette palette, BitSet statesInUse, ArrayUIntMap indexRemap) {
     if (palette == null) {
@@ -84,6 +94,18 @@ public class RegionPaletteCodec extends VersionedCodec {
     return encodedPalette;
   }
 
+  /**
+   * Creates a new palette with all of the block states indicated by a list of NBT compounds. The
+   * expected format is described {@link #encode(Palette, BitSet, ArrayUIntMap) here}.
+   *
+   * @param palette a list of NBT-encoded block states.
+   * @return the palette defined by the input list.
+   * @throws IllegalArgumentException if the input list is {@code null}.
+   * @throws IOException              if the list's {@link NBTList#getContentType() content-type} is
+   *                                  not {@link TagType#COMPOUND COMPOUND}, or if any state in the
+   *                                  list has no {@code Name} tag.
+   * @see RegionBlockStateCodec
+   */
   public Palette decode(NBTList palette) throws IOException {
     if (palette == null) {
       throw new IllegalArgumentException("null cannot be decoded as a palette");
