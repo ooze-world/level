@@ -25,10 +25,10 @@ public final class BitHelper {
   }
 
   /**
-   * @return the lowest number of bytes needed to hold the {@code amount} of bits.
+   * @return the lowest number of bytes needed to hold the {@code numberOfBits}.
    */
-  public static int bitsNeeded(int amount) {
-    return (int) Math.ceil(amount / (double) Byte.SIZE);
+  public static int bytesNeeded(int numberOfBits) {
+    return (int) Math.ceil(numberOfBits / (double) Byte.SIZE);
   }
 
   /**
@@ -36,7 +36,7 @@ public final class BitHelper {
    * with {@code 0}s until it has however many bytes are needed to hold {@code size} bits.
    */
   public static byte[] bitsToBytes(BitSet bits, int size) {
-    int sizeInBytes = bitsNeeded(size);
+    int sizeInBytes = bytesNeeded(size);
     return Arrays.copyOf(bits.toByteArray(), sizeInBytes);
   }
 
