@@ -101,7 +101,7 @@ public final class Palette implements Iterable<BlockState> {
    * @return the number of bits needed to hold any of the palette's indices.
    */
   public int magnitude() {
-    int maxIndex = Math.max(0, states.size() - 1);
+    int maxIndex = Math.max(1, states.size() - 1);
     return BitHelper.widthInBits(maxIndex);
   }
 
