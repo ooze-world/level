@@ -15,7 +15,7 @@ import java.util.TreeMap;
 import me.nullicorn.nedit.type.NBTCompound;
 import me.nullicorn.nedit.type.NBTList;
 import me.nullicorn.nedit.type.TagType;
-import me.nullicorn.ooze.nbt.NbtHelper;
+import me.nullicorn.ooze.level.nbt.NbtHelper;
 
 /**
  * Basic information about a compact Minecraft world. The level itself is comprised of cubes called

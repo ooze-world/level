@@ -4,7 +4,7 @@ import com.github.ooze.protos.BlockStateData;
 import java.io.IOException;
 import java.util.Objects;
 import me.nullicorn.nedit.type.NBTCompound;
-import me.nullicorn.ooze.nbt.NbtHelper;
+import me.nullicorn.ooze.level.nbt.NbtHelper;
 
 /**
  * Information about a type of block in Minecraft.
