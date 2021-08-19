@@ -20,7 +20,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 class PaletteTests {
 
   @Test
-  void shouldConstructorRejectNulls() {
+  void constructor_shouldRejectNulls() {
     // Name is null.
     assertThrows(IllegalArgumentException.class, () ->
         new Palette(null, 0, Collections.emptyList()));
@@ -35,7 +35,7 @@ class PaletteTests {
   }
 
   @Test
-  void shouldUseConstructorParams() {
+  void constructor_shouldAllArgsBeUsed() {
     String expectedName = "test_palette";
     int expectedVersion = 29;
     List<BlockState> expectedStates = generateStates(14);
@@ -51,7 +51,17 @@ class PaletteTests {
   }
 
   @Test
-  void shouldBeEmptyWhenSizeIsZero() {
+  void constructor_shouldStateListBeImmutable() {
+    List<BlockState> states = generateStates(10);
+
+    Palette palette = new Palette("test_palette", 42, states);
+    states.clear();
+
+    assertNotEquals(0, palette.size());
+  }
+
+  @Test
+  void isEmpty_shouldReturnTrueWhenSizeIsZero() {
     Palette emptyPalette = generatePalette(0);
     assertTrue(emptyPalette.isEmpty());
     assertEquals(0, emptyPalette.size());
@@ -59,16 +69,6 @@ class PaletteTests {
     Palette nonEmptyPalette = generatePalette(1);
     assertFalse(nonEmptyPalette.isEmpty());
     assertNotEquals(0, nonEmptyPalette.size());
-  }
-
-  @Test
-  void shouldStateListBeImmutable() {
-    List<BlockState> states = generateStates(10);
-
-    Palette palette = new Palette("test_palette", 42, states);
-    states.clear();
-
-    assertNotEquals(0, palette.size());
   }
 
   @Test
@@ -83,7 +83,7 @@ class PaletteTests {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2, 3, 4, 5, 8, 16})
-  void shouldHaveExpectedMagnitude(int magnitude) {
+  void magnitude_shouldCorrespondToSize(int magnitude) {
     int numberOfStates = 1 + (1 << (magnitude - 1));
     Palette palette = generatePalette(numberOfStates);
 
@@ -91,7 +91,7 @@ class PaletteTests {
   }
 
   @Test
-  void shouldTwoPalettesEqualWhenExpected() {
+  void equals_shouldTwoPalettesEqualWhenExpected() {
     EqualsVerifier
         .forClass(Palette.class)
         .withNonnullFields("name", "states")

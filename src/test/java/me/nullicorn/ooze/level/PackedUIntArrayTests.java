@@ -18,7 +18,7 @@ class PackedUIntArrayTests {
 
   @ParameterizedTest
   @ValueSource(ints = {-1})
-  void shouldConstructorsRejectNegativeSizes(int negativeSize) {
+  void constructor_shouldRejectNegativeSizes(int negativeSize) {
     Class<? extends Throwable> expectedException = NegativeArraySizeException.class;
 
     PackedUIntArrayData invalidData = PackedUIntArrayData.newBuilder()
@@ -32,7 +32,7 @@ class PackedUIntArrayTests {
 
   @ParameterizedTest
   @ValueSource(ints = {-1, 33})
-  void shouldConstructorsRejectInvalidMagnitudes(int invalidMagnitude) {
+  void constructor_shouldRejectInvalidMagnitudes(int invalidMagnitude) {
     Class<? extends Throwable> expectedException = IllegalArgumentException.class;
 
     PackedUIntArrayData invalidData = PackedUIntArrayData.newBuilder()
@@ -46,14 +46,14 @@ class PackedUIntArrayTests {
 
   @ParameterizedTest
   @ValueSource(ints = {0, 1, 5, 10, 64, 1000, 4096, Short.MAX_VALUE})
-  void shouldSizeMatchInput(int size) {
+  void size_shouldMatchConstructorValue(int size) {
     PackedUIntArray actual = new PackedUIntArray(new int[size]);
     assertEquals(size, actual.size());
   }
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2, 3, 4, 5, 8, 16, 24, 32})
-  void shouldMagnitudeMatchInput(int magnitude) {
+  void magnitude_shouldMatchConstructorValue(int magnitude) {
     int maxValue = BitHelper.createBitMask(magnitude);
 
     int[] input = new int[100];
@@ -66,13 +66,13 @@ class PackedUIntArrayTests {
 
   @ParameterizedTest
   @ValueSource(ints = {-1, Byte.MIN_VALUE, Short.MIN_VALUE, Integer.MIN_VALUE})
-  void shouldAccessorsRejectNegativeIndices(int index) {
+  void get_shouldRejectNegativeIndices(int index) {
     PackedUIntArray array = new PackedUIntArray();
     assertThrows(ArrayIndexOutOfBoundsException.class, () -> array.get(index));
   }
 
   @Test
-  void shouldRetrieveCorrectValues() {
+  void get_shouldReturnCorrectValues() {
     int magnitude = 18;
     int size = 1 << magnitude;
 
@@ -94,7 +94,7 @@ class PackedUIntArrayTests {
   }
 
   @Test
-  void shouldGenerateMatchingProto() {
+  void toProto_shouldMatchArray() {
     int magnitude = 18;
     int size = 1 << magnitude;
 
@@ -113,7 +113,7 @@ class PackedUIntArrayTests {
   }
 
   @Test
-  void shouldTwoArraysEqualWhenExpected() {
+  void equals_shouldTwoArraysEqualWhenExpected() {
     EqualsVerifier
         .forClass(PackedUIntArray.class)
         .withIgnoredFields("valueMask")

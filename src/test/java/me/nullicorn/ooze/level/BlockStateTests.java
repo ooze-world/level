@@ -18,17 +18,17 @@ class BlockStateTests {
   // TODO: 7/29/21 Add tests for proto conversion.
 
   @Test
-  void shouldFailIfNameIsNull() {
+  void constructor_shouldFailIfNameIsNull() {
     assertThrows(IllegalArgumentException.class, () -> new BlockState(null));
   }
 
   @Test
-  void shouldFailIfPropertiesAreNull() {
+  void constructor_shouldFailIfPropertiesAreNull() {
     assertThrows(IllegalArgumentException.class, () -> new BlockState("ooze_test_state", null));
   }
 
   @Test
-  void shouldConstructorArgsBeUsed() {
+  void constructor_shouldAllArgsBeUsed() {
     final String name = "ooze:test_state";
     final boolean isEmpty = false;
     final NBTCompound properties = new NBTCompound();
@@ -41,7 +41,7 @@ class BlockStateTests {
   }
 
   @Test
-  void shouldPropertiesBeImmutable() {
+  void getProperties_shouldPropertiesBeImmutable() {
     String nestedTagName = "nested";
 
     NBTCompound properties = new NBTCompound();
@@ -63,7 +63,7 @@ class BlockStateTests {
   }
 
   @Test
-  void shouldNotHavePropertiesIfCompoundIsEmpty() {
+  void hasProperties_shouldReturnFalseIfCompoundIsEmpty() {
     NBTCompound properties = new NBTCompound();
 
     BlockState stateWithoutProperties = new BlockState("ooze:test_state", properties);
@@ -71,7 +71,7 @@ class BlockStateTests {
   }
 
   @Test
-  void shouldHavePropertiesIfCompoundIsNotEmpty() {
+  void hasProperties_shouldReturnTrueIfCompoundIsNotEmpty() {
     NBTCompound properties = new NBTCompound();
     properties.put("foo", "bar");
 
@@ -80,12 +80,12 @@ class BlockStateTests {
   }
 
   @Test
-  void shouldEmptyFactoryReturnEmptyState() {
+  void empty_shouldEmptyFactoryReturnEmptyState() {
     assertTrue(BlockState.empty().isEmpty());
   }
 
   @Test
-  void shouldTwoStatesEqualWhenExpected() {
+  void equals_shouldTwoStatesEqualWhenExpected() {
     EqualsVerifier
         .forClass(BlockState.class)
         .withNonnullFields("name", "properties")
