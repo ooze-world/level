@@ -29,13 +29,15 @@ class BlockStateTests {
 
   @Test
   void shouldConstructorArgsBeUsed() {
-    String name = "ooze:test_state";
-    NBTCompound properties = new NBTCompound();
+    final String name = "ooze:test_state";
+    final boolean isEmpty = false;
+    final NBTCompound properties = new NBTCompound();
     properties.put("testType", "cool");
 
-    BlockState state = new BlockState(name, properties);
+    BlockState state = new BlockState(name, properties, isEmpty);
     assertEquals(name, state.getName());
     assertEquals(properties, state.getProperties());
+    assertEquals(isEmpty, state.isEmpty());
   }
 
   @Test
@@ -61,7 +63,7 @@ class BlockStateTests {
   }
 
   @Test
-  void shouldNotHavePropertiesIfEmpty() {
+  void shouldNotHavePropertiesIfCompoundIsEmpty() {
     NBTCompound properties = new NBTCompound();
 
     BlockState stateWithoutProperties = new BlockState("ooze:test_state", properties);
@@ -69,12 +71,17 @@ class BlockStateTests {
   }
 
   @Test
-  void shouldHavePropertiesIfNotEmpty() {
+  void shouldHavePropertiesIfCompoundIsNotEmpty() {
     NBTCompound properties = new NBTCompound();
     properties.put("foo", "bar");
 
     BlockState stateWithProperties = new BlockState("ooze:test_state", properties);
     assertTrue(stateWithProperties.hasProperties());
+  }
+
+  @Test
+  void shouldEmptyFactoryReturnEmptyState() {
+    assertTrue(BlockState.empty().isEmpty());
   }
 
   @Test

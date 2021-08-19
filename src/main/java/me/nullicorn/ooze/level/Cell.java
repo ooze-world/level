@@ -10,7 +10,26 @@ import java.util.List;
  *
  * @author Nullicorn
  */
-public class Cell {
+public final class Cell {
+
+  /**
+   * A constant value returned by the {@link #empty()} factory.
+   */
+  private static final Cell EMPTY = new Cell(Palette.empty(), new PackedUIntArray(new int[4096]));
+
+  /**
+   * A factory for creating empty cells, such that each value in the {@link #getBlocks() blocks}
+   * array maps to an {@link BlockState#isEmpty() empty} state in the {@link #getPalette()
+   * palette}.
+   *
+   * @return an empty cell.
+   * @see BlockState#isEmpty()
+   * @see BlockState#empty()
+   * @see Palette#empty()
+   */
+  public static Cell empty() {
+    return EMPTY;
+  }
 
   private final Palette         palette;
   private final PackedUIntArray blocks;
@@ -122,7 +141,7 @@ public class Cell {
       }
 
       // Recreate the "blocks" array using the isolated
-      // palette
+      // palette.
       int[] tempIsolatedArray = new int[arrayLength];
       for (int i = 0; i < arrayLength; i++) {
         int state = blocks.get(i);

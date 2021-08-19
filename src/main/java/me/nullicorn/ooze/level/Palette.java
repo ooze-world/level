@@ -19,6 +19,27 @@ import java.util.Objects;
 public final class Palette implements Iterable<BlockState> {
 
   /**
+   * A constant value returned by the {@link #empty()} factory.
+   */
+  private static final Palette EMPTY = new Palette(
+      "ooze:empty",
+      1451,
+      Collections.singletonList(BlockState.empty())
+  );
+
+  /**
+   * A factory for creating palettes with a single, {@link BlockState#empty() empty} block state,
+   * especially for use by empty volumes of blocks.
+   *
+   * @return a palette of one empty block state.
+   * @see BlockState#isEmpty()
+   * @see BlockState#empty()
+   */
+  public static Palette empty() {
+    return EMPTY;
+  }
+
+  /**
    * A factory for converting palettes from their ProtoBuf form.
    *
    * @throws IOException              if the properties of any of the palette's states could not be
