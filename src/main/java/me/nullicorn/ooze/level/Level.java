@@ -202,7 +202,7 @@ public class Level {
     });
 
     // Tell the level which cells we added above.
-    byte[] populationBytes = BitHelper.bitsToBytes(population, populationSize);
+    byte[] populationBytes = BitHelper.getAsByteArray(population, populationSize);
     builder.setPopulation(ByteString.copyFrom(populationBytes));
 
     // Tell the level which types of blocks it can use.
