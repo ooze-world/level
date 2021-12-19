@@ -54,7 +54,7 @@ class PackedUIntArrayTests {
   @ParameterizedTest
   @ValueSource(ints = {1, 2, 3, 4, 5, 8, 16, 24, 32})
   void magnitude_shouldMatchConstructorValue(int magnitude) {
-    int maxValue = BitHelper.getSizedMask(magnitude);
+    int maxValue = (int) ((1L << magnitude) - 1);
 
     int[] input = new int[100];
     input[0] = maxValue;

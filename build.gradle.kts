@@ -1,5 +1,10 @@
 plugins {
+    // We can remove this once migration to Kotlin is complete.
     java
+
+    kotlin("jvm") version "1.6.10"
+
+    // Adds support for generating .class files from ProtoBuf straight from gradle.
     id("com.google.protobuf") version "0.8.18"
 }
 

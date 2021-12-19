@@ -97,8 +97,8 @@ public final class PackedUIntArray {
 
     // Initialize the array.
     size = uints.length;
-    magnitude = BitHelper.getWidthInBits(widest);
-    valueMask = BitHelper.getSizedMask(magnitude);
+    magnitude = BitsKt.getWidth(widest);
+    valueMask = BitsKt.getFullMask(magnitude);
 
     // Populate the array.
     contents = new byte[bytesNeeded(size, magnitude)];
@@ -129,7 +129,7 @@ public final class PackedUIntArray {
     this.size = size;
     this.magnitude = magnitude;
     this.contents = contents;
-    this.valueMask = BitHelper.getSizedMask(magnitude);
+    this.valueMask = BitsKt.getFullMask(magnitude);
 
     // Just to be safe, clear any extraneous trailing
     // bits on the last byte. If set, they would mess
