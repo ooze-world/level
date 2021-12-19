@@ -68,8 +68,8 @@ internal fun BitSet.toExactByteArray(numberOfBits: Int): ByteArray {
 internal fun getFullMask(width: Int) = ((1L shl width) - 1).toInt()
 
 /**
- * Determines the fewest number of bytes (octets) needed to represent {@code n} bits, where `n` is
- * the value of [numberOfBits].
+ * Determines the fewest number of bytes (octets) needed to represent `n` bits, where `n` is the
+ * value of [numberOfBits].
  *
  * @param numberOfBits An amount of bits.
  * @return the fewest number of bytes that could be used to represent the supplied [numberOfBits].
